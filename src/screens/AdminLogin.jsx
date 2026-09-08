@@ -6,8 +6,8 @@ import { ShieldCheck } from "lucide-react";
 
 export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || "admin@test.com");
-  const [password, setPassword] = useState(import.meta.env.VITE_ADMIN_PASSWORD || "password123");
+  const [email, setEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || ");
+  const [password, setPassword] = useState(import.meta.env.VITE_ADMIN_PASSWORD || "");
   const [msg, setMsg] = useState("");
   const navigate = useNavigate();
 
