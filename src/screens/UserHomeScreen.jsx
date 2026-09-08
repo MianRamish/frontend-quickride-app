@@ -1,0 +1,953 @@
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useUser } from "../contexts/UserContext";
+import LiveMap from "../components/LiveMap";
+import {
+  Button,
+  LocationSuggestions,
+  SelectVehicle,
+  RideDetails,
+  Sidebar,
+  NetworkStatusBanner,
+  NotificationBell,
+  MobileBottomNav,
+} from "../components";
+import axios from "axios";
+import debounce from "lodash.debounce";
+import { SocketDataContext } from "../contexts/SocketContext";
+import Console from "../utils/console";
+import { ArrowDownUp, Banknote, CalendarClock, CheckCircle2, Clock3, GraduationCap, MapPin, Navigation, Plane, Search, ShieldCheck, Sparkles } from "lucide-react";
+
+function UserHomeScreen() {
+  const token = localStorage.getItem("token");
+  const { socket } = useContext(SocketDataContext);
+  const { user } = useUser();
+  const [messages, setMessages] = useState(JSON.parse(localStorage.getItem("messages")) || []);
+  const [loading, setLoading] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [review, setReview] = useState("");
+  const [ratingTags, setRatingTags] = useState([]);
+  const [completedRide, setCompletedRide] = useState(null);
+  const [position, setPosition] = useState(null);
+
+  const [selectedInput, setSelectedInput] = useState("pickup");
+  const [locationSuggestion, setLocationSuggestion] = useState([]);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+  const [pickupConfirmed, setPickupConfirmed] = useState(false);
+  const [destinationConfirmed, setDestinationConfirmed] = useState(false);
+  const [recentPlaces, setRecentPlaces] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("recentPlaces") || "[]").slice(0, 4);
+    } catch {
+      return [];
+    }
+  });
+  const [mapCenter, setMapCenter] = useState([6.5244, 3.3792]);
+  const [pickupCoords, setPickupCoords] = useState(null);
+  const [destinationCoords, setDestinationCoords] = useState(null);
+  const [routeCoords, setRouteCoords] = useState([]);
+  const [routeInfo, setRouteInfo] = useState({ distanceText: "", durationText: "" });
+  const [mapNotice, setMapNotice] = useState("");
+  const [rideCreated, setRideCreated] = useState(false);
+  const [rideMode, setRideMode] = useState("now");
+  const [scheduledFor, setScheduledFor] = useState("");
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
+  const [emergencyType, setEmergencyType] = useState("unsafe_driving");
+  const [emergencyMessage, setEmergencyMessage] = useState("");
+  const [complaintCategory, setComplaintCategory] = useState("driver_behavior");
+  const [complaintDescription, setComplaintDescription] = useState("");
+
+  const [pickupLocation, setPickupLocation] = useState("");
+  const [destinationLocation, setDestinationLocation] = useState("");
+  const [selectedVehicle, setSelectedVehicle] = useState("car");
+  const [fare, setFare] = useState({ car: 0, bike: 0 });
+  const [currency, setCurrency] = useState("NGN");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [paymentMethods, setPaymentMethods] = useState([
+    { id: "cash", label: "Cash", enabled: true, status: "available", description: "Pay the driver directly in cash after the trip." },
+    { id: "card", label: "Card", enabled: false, status: "coming_soon", description: "Card payments are coming soon." },
+  ]);
+  const [confirmedRideData, setConfirmedRideData] = useState(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [savedPlaces, setSavedPlaces] = useState([]);
+  const [locationActionLoading, setLocationActionLoading] = useState(false);
+  const suggestionRequestId = useRef(0);
+
+  const [showFindTripPanel, setShowFindTripPanel] = useState(true);
+  const [showSelectVehiclePanel, setShowSelectVehiclePanel] = useState(false);
+  const [showRideDetailsPanel, setShowRideDetailsPanel] = useState(false);
+
+  const handleLocationChange = useCallback(
+    debounce(async (inputValue, authToken, requestId, userLat, userLng) => {
+      if (inputValue.trim().length < 3) return;
+      try {
+        const params = new URLSearchParams({ input: inputValue });
+        if (Number.isFinite(userLat) && Number.isFinite(userLng)) {
+          params.set("lat", String(userLat));
+          params.set("lng", String(userLng));
+        }
+        const response = await axios.get(
+          `${import.meta.env.VITE_SERVER_URL}/map/get-suggestions?${params.toString()}`,
+          { headers: { token: authToken } }
+        );
+        if (requestId !== suggestionRequestId.current) return;
+        setLocationSuggestion(Array.isArray(response.data) ? response.data : []);
+      } catch (error) {
+        if (requestId === suggestionRequestId.current) setLocationSuggestion([]);
+        Console.error(error);
+      } finally {
+        if (requestId === suggestionRequestId.current) setSuggestionLoading(false);
+      }
+    }, 260),
+    []
+  );
+
+  useEffect(() => () => handleLocationChange.cancel(), [handleLocationChange]);
+
+  const onChangeHandler = (e) => {
+    const { id, value } = e.target;
+    setSelectedInput(id);
+    setMapNotice("");
+
+    if (id === "pickup") {
+      setPickupLocation(value);
+      setPickupConfirmed(false);
+    }
+    if (id === "destination") {
+      setDestinationLocation(value);
+      setDestinationConfirmed(false);
+    }
+
+    suggestionRequestId.current += 1;
+    handleLocationChange.cancel();
+
+    if (value.trim().length >= 3) {
+      setSuggestionLoading(true);
+      handleLocationChange(
+        value,
+        token,
+        suggestionRequestId.current,
+        position?.coords?.latitude,
+        position?.coords?.longitude
+      );
+    } else {
+      setSuggestionLoading(false);
+      setLocationSuggestion([]);
+    }
+  };
+
+  const rememberPlace = (place) => {
+    const updated = [place, ...recentPlaces.filter((item) => item !== place)].slice(0, 4);
+    setRecentPlaces(updated);
+    localStorage.setItem("recentPlaces", JSON.stringify(updated));
+  };
+
+  const selectLocationSuggestion = (suggestion, inputType = selectedInput) => {
+    if (inputType === "pickup") {
+      setPickupLocation(suggestion);
+      setPickupConfirmed(true);
+    } else {
+      setDestinationLocation(suggestion);
+      setDestinationConfirmed(true);
+    }
+    setLocationSuggestion([]);
+    setSuggestionLoading(false);
+    setMapNotice("");
+    rememberPlace(suggestion);
+  };
+
+  const chooseQuickDestination = (place) => {
+    setSelectedInput("destination");
+    selectLocationSuggestion(place, "destination");
+  };
+
+  const swapLocations = () => {
+    setPickupLocation(destinationLocation);
+    setDestinationLocation(pickupLocation);
+    setPickupConfirmed(destinationConfirmed);
+    setDestinationConfirmed(pickupConfirmed);
+    setLocationSuggestion([]);
+    setSuggestionLoading(false);
+  };
+
+  const getDistanceAndFare = async (pickup, destination) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${import.meta.env.VITE_SERVER_URL}/ride/get-fare?pickup=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`,
+        { headers: { token } }
+      );
+      setFare(response.data.fare || { car: 0, bike: 0 });
+      setCurrency(response.data.market?.currency || "NGN");
+      const distanceTime = response.data.distanceTime || {};
+      setRouteInfo({
+        distanceText: distanceTime?.distance?.text || "",
+        durationText: distanceTime?.duration?.text || "",
+      });
+      const origin = distanceTime.originCoordinates;
+      const destinationPoint = distanceTime.destinationCoordinates;
+      if (origin) setPickupCoords({ lat: origin.ltd, lng: origin.lng });
+      if (destinationPoint) setDestinationCoords({ lat: destinationPoint.ltd, lng: destinationPoint.lng });
+      setRouteCoords(distanceTime.route || []);
+      if (origin) setMapCenter([origin.ltd, origin.lng]);
+      setShowFindTripPanel(false);
+      setShowSelectVehiclePanel(true);
+      setLocationSuggestion([]);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to calculate fare. Please use more specific pickup and destination addresses.";
+      setMapNotice(message);
+      Console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createRide = async () => {
+    try {
+      setLoading(true);
+      const payload = {
+        pickup: pickupLocation,
+        destination: destinationLocation,
+        vehicleType: selectedVehicle,
+        rideMode,
+        paymentMethod,
+        promoCode,
+      };
+
+      if (rideMode === "scheduled") {
+        payload.scheduledFor = scheduledFor;
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/ride/create`,
+        payload,
+        { headers: { token } }
+      );
+
+      const rideData = {
+        pickup: pickupLocation,
+        destination: destinationLocation,
+        pickupConfirmed,
+        destinationConfirmed,
+        vehicleType: selectedVehicle,
+        fare,
+        routeInfo,
+        currency,
+        paymentMethod,
+        confirmedRideData: null,
+        rideMode,
+        scheduledFor: rideMode === "scheduled" ? scheduledFor : null,
+        _id: response.data._id,
+        promoCode: response.data?.promoCode || promoCode,
+        promoDiscount: response.data?.promoDiscount || 0,
+      };
+      localStorage.setItem("rideDetails", JSON.stringify(rideData));
+      setRideCreated(true);
+      if (rideMode === "scheduled") {
+        setMapNotice("Ride scheduled successfully. Admin can view it under Scheduled Rides.");
+        setShowRideDetailsPanel(false);
+        setShowSelectVehiclePanel(false);
+        setShowFindTripPanel(true);
+        return;
+      }
+
+      setMapNotice("Request sent. QuickRide will keep searching nearby online drivers and update you automatically.");
+    } catch (error) {
+      const validationMessage = error?.response?.data?.errors?.[0]?.msg;
+      const message = validationMessage || error?.response?.data?.message || error?.message || "Unable to create ride. Please try again.";
+      setMapNotice(message);
+      Console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCurrentRideId = () => {
+    const stored = JSON.parse(localStorage.getItem("rideDetails") || "{}");
+    return confirmedRideData?._id || stored?.confirmedRideData?._id || stored?._id;
+  };
+
+  const resetRideUi = () => {
+    updateLocation();
+    setRouteCoords([]);
+    setRouteInfo({ distanceText: "", durationText: "" });
+    setPickupCoords(null);
+    setDestinationCoords(null);
+    setShowRideDetailsPanel(false);
+    setShowSelectVehiclePanel(false);
+    setShowFindTripPanel(true);
+    setDefaults();
+    localStorage.removeItem("rideDetails");
+    localStorage.removeItem("panelDetails");
+    localStorage.removeItem("messages");
+    localStorage.removeItem("showPanel");
+    localStorage.removeItem("showBtn");
+  };
+
+  const cancelRide = async (reasonCode = "", reasonText = "") => {
+    const rideId = getCurrentRideId();
+    if (!rideId) return resetRideUi();
+
+    try {
+      setLoading(true);
+      await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/ride/cancel-user`,
+        { rideId, reasonCode, reasonText },
+        { headers: { token } }
+      );
+      resetRideUi();
+    } catch (error) {
+      Console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitRating = async () => {
+    const rideId = completedRide?._id;
+    if (!rideId) return;
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/ride/rate`,
+        { rideId, rating, review, tags: ratingTags },
+        { headers: { token } }
+      );
+      setShowRatingModal(false);
+      setCompletedRide(null);
+      setReview("");
+      setRating(5);
+      setRatingTags([]);
+    } catch (e) {
+      alert(e?.response?.data?.message || "Rating failed");
+    }
+  };
+
+  const submitEmergency = async () => {
+    try {
+      setLoading(true);
+      const rideId = getCurrentRideId();
+      const currentLocation = position?.coords ? { ltd: position.coords.latitude, lng: position.coords.longitude, address: pickupLocation } : { address: pickupLocation };
+      await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/ride/emergency`,
+        { rideId, type: emergencyType, message: emergencyMessage, location: currentLocation },
+        { headers: { token } }
+      );
+      setShowEmergencyModal(false);
+      setEmergencyMessage("");
+      alert("Emergency report sent to admin.");
+    } catch (error) {
+      alert(error?.response?.data?.message || "Unable to send emergency report.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitComplaint = async () => {
+    try {
+      setLoading(true);
+      const rideId = getCurrentRideId();
+      await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/ride/complaint`,
+        { rideId, category: complaintCategory, description: complaintDescription },
+        { headers: { token } }
+      );
+      setShowComplaintModal(false);
+      setComplaintDescription("");
+      alert("Complaint submitted to admin.");
+    } catch (error) {
+      alert(error?.response?.data?.message || "Unable to submit complaint.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setDefaults = () => {
+    setPickupLocation("");
+    setDestinationLocation("");
+    setPickupConfirmed(false);
+    setDestinationConfirmed(false);
+    setLocationSuggestion([]);
+    setSuggestionLoading(false);
+    setSelectedVehicle("car");
+    setFare({ car: 0, bike: 0 });
+    setConfirmedRideData(null);
+    setRideCreated(false);
+    setRideMode("now");
+    setScheduledFor("");
+    setPaymentMethod("cash");
+    setPromoCode("");
+  };
+
+  const DEFAULT_MAP_CENTER = [6.5244, 3.3792];
+
+  const updateLocation = () => {
+    if (!navigator.geolocation) {
+      setMapCenter(DEFAULT_MAP_CENTER);
+      setMapNotice("Location is unavailable. You can still enter pickup and destination manually.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (currentPosition) => {
+        setPosition(currentPosition);
+        setMapCenter([currentPosition.coords.latitude, currentPosition.coords.longitude]);
+        setMapNotice("");
+      },
+      (error) => {
+        Console.warn?.("Location unavailable, using fallback map center", error);
+        setPosition(null);
+        setMapCenter(DEFAULT_MAP_CENTER);
+        setMapNotice("Location permission is unavailable. Type pickup and destination to continue.");
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 60000,
+      }
+    );
+  };
+
+  const useCurrentLocationAsPickup = () => {
+    if (!navigator.geolocation) {
+      setMapNotice("Location is unavailable on this device.");
+      return;
+    }
+    setLocationActionLoading(true);
+    navigator.geolocation.getCurrentPosition(async (currentPosition) => {
+      const lat = currentPosition.coords.latitude;
+      const lng = currentPosition.coords.longitude;
+      setPosition(currentPosition);
+      setMapCenter([lat, lng]);
+      setPickupCoords({ lat, lng });
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/map/reverse-geocode?lat=${lat}&lng=${lng}`, { headers: { token } });
+        const address = response.data?.address || response.data?.display_name || `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+        setPickupLocation(address);
+        setPickupConfirmed(true);
+        rememberPlace(address);
+        setMapNotice("Pickup set from your current location.");
+      } catch (_) {
+        const address = `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+        setPickupLocation(address);
+        setPickupConfirmed(true);
+        setMapNotice("Pickup set from GPS.");
+      } finally {
+        setLocationActionLoading(false);
+      }
+    }, () => { setLocationActionLoading(false); setMapNotice("Allow location permission to use your current pickup."); }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 15000 });
+  };
+
+  useEffect(() => {
+    updateLocation();
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    Promise.allSettled([
+      axios.get(`${import.meta.env.VITE_SERVER_URL}/user/saved-places`, { headers: { token } }),
+      axios.get(`${import.meta.env.VITE_SERVER_URL}/ride/active`, { headers: { token } }),
+    ]).then(([placesResult, activeResult]) => {
+      if (placesResult.status === "fulfilled") setSavedPlaces(placesResult.value.data || []);
+      if (activeResult.status === "fulfilled" && activeResult.value.data?._id) {
+        const ride = activeResult.value.data;
+        setConfirmedRideData(ride.captain ? ride : null);
+        setRideCreated(!ride.captain && ride.status === "pending");
+        setPickupLocation(ride.pickup || "");
+        setDestinationLocation(ride.destination || "");
+        setPickupConfirmed(true);
+        setDestinationConfirmed(true);
+        setSelectedVehicle(ride.vehicle || "car");
+        setPaymentMethod(ride.paymentMethod || "cash");
+        setPromoCode(ride.promoCode || "");
+        setShowFindTripPanel(false);
+        setShowSelectVehiclePanel(false);
+        setShowRideDetailsPanel(true);
+      }
+    });
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    axios
+      .get(`${import.meta.env.VITE_SERVER_URL}/ride/payment-methods`, { headers: { token } })
+      .then((response) => {
+        if (Array.isArray(response.data?.methods) && response.data.methods.length) {
+          setPaymentMethods(response.data.methods);
+          setPaymentMethod(response.data.defaultMethod || "cash");
+        }
+      })
+      .catch(() => {
+        // Keep the safe cash/card-coming-soon fallback if the server is older.
+      });
+  }, [token]);
+
+  useEffect(() => {
+    if (!socket || !user?._id) return;
+
+    // Socket.IO reconnects create a new server-side socket. Re-authenticate the
+    // passenger after every reconnect so ride events and live driver GPS resume.
+    const joinPassenger = () => socket.emit("join", { userId: user._id, userType: "user", token });
+    if (socket.connected) joinPassenger();
+    socket.on("connect", joinPassenger);
+
+    const onRideConfirmed = (data) => {
+      setConfirmedRideData(data);
+      localStorage.setItem(
+        "rideDetails",
+        JSON.stringify({
+          pickup: data.pickup,
+          destination: data.destination,
+          vehicleType: data.vehicle,
+          fare,
+          confirmedRideData: data,
+          _id: data._id,
+        })
+      );
+      if (data?.captain?.location?.coordinates) {
+        setMapCenter([data.captain.location.coordinates[1], data.captain.location.coordinates[0]]);
+      }
+    };
+
+    const updateRideStatus = (status, data = {}) => setConfirmedRideData((prev) => prev ? { ...prev, ...data, status } : prev);
+    const onDriverArriving = (data) => updateRideStatus("arriving", data);
+    const onDriverArrived = (data) => updateRideStatus("arrived", data);
+    const onRideStarted = (data) => {
+      updateRideStatus("ongoing", data);
+      if (destinationCoords) setMapCenter([destinationCoords.lat, destinationCoords.lng]);
+    };
+
+    const onRideEnded = (data) => {
+      setCompletedRide(data);
+      setShowRatingModal(true);
+      resetRideUi();
+    };
+
+    const onRideCancelled = () => resetRideUi();
+    const onCaptainLocation = (payload) => {
+      if (!payload?.location?.ltd || !payload?.location?.lng) return;
+      setMapCenter([payload.location.ltd, payload.location.lng]);
+      setConfirmedRideData((prev) => prev ? {
+        ...prev,
+        captain: {
+          ...(prev.captain || payload.captain || {}),
+          location: { coordinates: [payload.location.lng, payload.location.ltd] },
+        },
+      } : prev);
+    };
+
+    socket.on("ride-confirmed", onRideConfirmed);
+    socket.on("driver-arriving", onDriverArriving);
+    socket.on("driver-arrived", onDriverArrived);
+    socket.on("ride-started", onRideStarted);
+    socket.on("ride-ended", onRideEnded);
+    socket.on("ride-cancelled", onRideCancelled);
+    socket.on("captain-location-updated", onCaptainLocation);
+
+    return () => {
+      socket.off("connect", joinPassenger);
+      socket.off("ride-confirmed", onRideConfirmed);
+      socket.off("driver-arriving", onDriverArriving);
+      socket.off("driver-arrived", onDriverArrived);
+      socket.off("ride-started", onRideStarted);
+      socket.off("ride-ended", onRideEnded);
+      socket.off("ride-cancelled", onRideCancelled);
+      socket.off("captain-location-updated", onCaptainLocation);
+    };
+  }, [socket, user?._id, pickupLocation, fare]);
+
+  useEffect(() => {
+    const storedRideDetails = localStorage.getItem("rideDetails");
+    const storedPanelDetails = localStorage.getItem("panelDetails");
+
+    if (storedRideDetails) {
+      const ride = JSON.parse(storedRideDetails);
+      setPickupLocation(ride.pickup || "");
+      setDestinationLocation(ride.destination || "");
+      setPickupConfirmed(Boolean(ride.pickupConfirmed || ride.confirmedRideData));
+      setDestinationConfirmed(Boolean(ride.destinationConfirmed || ride.confirmedRideData));
+      setSelectedVehicle(ride.vehicleType || "car");
+      setFare(ride.fare || { car: 0, bike: 0 });
+      setRouteInfo(ride.routeInfo || { distanceText: "", durationText: "" });
+      setCurrency(ride.currency || "NGN");
+      setPaymentMethod(ride.paymentMethod || "cash");
+      setConfirmedRideData(ride.confirmedRideData || null);
+      setRideCreated(Boolean(ride._id && !ride.confirmedRideData));
+    }
+
+    if (storedPanelDetails) {
+      const panels = JSON.parse(storedPanelDetails);
+      setShowFindTripPanel(Boolean(panels.showFindTripPanel));
+      setShowSelectVehiclePanel(Boolean(panels.showSelectVehiclePanel));
+      setShowRideDetailsPanel(Boolean(panels.showRideDetailsPanel));
+    }
+  }, []);
+
+  useEffect(() => {
+    const current = JSON.parse(localStorage.getItem("rideDetails") || "{}");
+    const rideData = {
+      ...current,
+      pickup: pickupLocation,
+      destination: destinationLocation,
+      pickupConfirmed,
+      destinationConfirmed,
+      vehicleType: selectedVehicle,
+      fare,
+      routeInfo,
+      paymentMethod,
+      confirmedRideData,
+    };
+    if (pickupLocation || destinationLocation || confirmedRideData || current?._id) {
+      localStorage.setItem("rideDetails", JSON.stringify(rideData));
+    }
+  }, [pickupLocation, destinationLocation, pickupConfirmed, destinationConfirmed, selectedVehicle, fare, routeInfo, paymentMethod, confirmedRideData]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "panelDetails",
+      JSON.stringify({ showFindTripPanel, showSelectVehiclePanel, showRideDetailsPanel })
+    );
+  }, [showFindTripPanel, showSelectVehiclePanel, showRideDetailsPanel]);
+
+  useEffect(() => {
+    localStorage.setItem("messages", JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    if (!socket || !confirmedRideData?._id) return;
+    socket.emit("join-room", confirmedRideData._id);
+    const onMessage = (msg) => setMessages((prev) => [...prev, { msg, by: "other" }]);
+    socket.on("receiveMessage", onMessage);
+    return () => socket.off("receiveMessage", onMessage);
+  }, [socket, confirmedRideData?._id]);
+
+  const markers = [
+    position?.coords
+      ? { key: "me", lat: position.coords.latitude, lng: position.coords.longitude, title: "You", color: "#2563eb" }
+      : null,
+    pickupCoords ? { key: "pickup", lat: pickupCoords.lat, lng: pickupCoords.lng, title: "Pickup", subtitle: pickupLocation, color: "#10b981" } : null,
+    destinationCoords ? { key: "destination", lat: destinationCoords.lat, lng: destinationCoords.lng, title: "Destination", subtitle: destinationLocation, color: "#0f172a" } : null,
+    confirmedRideData?.captain?.location?.coordinates
+      ? {
+          key: "captain",
+          lat: confirmedRideData.captain.location.coordinates[1],
+          lng: confirmedRideData.captain.location.coordinates[0],
+          title: "Driver",
+          subtitle: `${confirmedRideData?.captain?.fullname?.firstname || ""} ${confirmedRideData?.captain?.fullname?.lastname || ""}`.trim(),
+          color: "#f59e0b",
+        }
+      : null,
+  ].filter(Boolean);
+
+  const activeSearchValue = selectedInput === "pickup" ? pickupLocation : destinationLocation;
+  const activeLocationConfirmed = selectedInput === "pickup" ? pickupConfirmed : destinationConfirmed;
+  const isLocationSearching = activeSearchValue.trim().length >= 3 && !activeLocationConfirmed;
+  const popularDestinations = [
+    { label: "UNILAG", value: "University of Lagos, Akoka, Yaba, Lagos, Nigeria", icon: GraduationCap },
+    { label: "Lagos Airport", value: "Murtala Muhammed International Airport, Ikeja, Lagos, Nigeria", icon: Plane },
+    { label: "Victoria Island", value: "Victoria Island, Lagos, Nigeria", icon: MapPin },
+  ];
+
+  return (
+    <div className="screen-safe screen-with-nav">
+      <div className="mobile-bg" />
+      <NetworkStatusBanner />
+      <Sidebar />
+
+      <div className="relative z-0 h-[41dvh] min-h-[285px] max-h-[410px] px-3 pb-0 pt-3">
+        <div className="app-topbar mb-3 pr-[60px]">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            <div className="app-topbar-avatar">{user?.fullname?.firstname?.[0] || "R"}</div>
+            <div className="min-w-0">
+              <p className="flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-200"><Sparkles size={11} /> QuickRide Nigeria</p>
+              <h1 className="truncate text-[14px] font-black tracking-tight min-[390px]:text-[15px]">Ready to ride, {user?.fullname?.firstname || "rider"}?</h1>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2"><span className="hidden rounded-full bg-emerald-400/15 px-2.5 py-1 text-[10px] font-black text-emerald-200 min-[460px]:inline-flex">Cash active</span><NotificationBell userType="user" /></div>
+        </div>
+
+        <div className="relative h-[calc(100%_-_62px)]">
+          <LiveMap height="100%" center={mapCenter} markers={markers} routeCoords={routeCoords} />
+          <div className="pointer-events-none absolute left-3 top-3 z-[500] flex gap-2">
+            <span className="rounded-full border border-white/80 bg-white/95 px-3 py-1.5 text-[10px] font-black text-slate-700 shadow-lg backdrop-blur"><Navigation size={11} className="mr-1 inline" /> Live map</span>
+            {confirmedRideData && <span className="rounded-full bg-emerald-600 px-3 py-1.5 text-[10px] font-black text-white shadow-lg">Driver connected</span>}
+          </div>
+        </div>
+        {mapNotice && (
+          <div className="absolute bottom-3 left-6 right-6 z-[501] rounded-2xl border border-white/70 bg-white/95 px-3 py-2.5 text-[11px] font-semibold leading-4 text-slate-600 shadow-xl backdrop-blur">
+            {mapNotice}
+          </div>
+        )}
+      </div>
+
+      {showFindTripPanel && (
+        <div className="floating-sheet floating-sheet-nav z-30 flex min-h-[57dvh] flex-col gap-3 sheet-scroll sheet-scroll-nav sheet-enter">
+          <div className="sheet-handle" />
+
+          <div className="flow-steps">
+            <div className="flow-step flow-step-active"><span className="mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-950 text-[9px] text-white">1</span> Route</div>
+            <div className="flow-step">2 Ride</div>
+            <div className="flow-step">3 Confirm</div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="mini-label">Book a ride</p>
+              <h2 className="mt-0.5 text-[clamp(1.55rem,7vw,1.95rem)] font-black tracking-[-0.04em] text-slate-950">Plan your trip</h2>
+              <p className="mt-1 text-[11px] font-semibold text-slate-500">Search Nigerian places and select the exact result.</p>
+            </div>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[17px] bg-emerald-50 text-emerald-700">
+              <Search size={19} strokeWidth={2.3} />
+            </div>
+          </div>
+
+          <div className="route-card route-card-advanced">
+            <div className="route-line" />
+
+            <div className="relative z-10 flex items-center gap-3">
+              <span className="route-dot" />
+              <label className={`location-input-shell ${selectedInput === "pickup" ? "location-input-shell-active" : ""}`}>
+                <span className="location-input-label">Pickup</span>
+                <span className="flex min-w-0 items-center gap-2">
+                  <input
+                    id="pickup"
+                    placeholder="Area, landmark or address"
+                    className="location-input"
+                    value={pickupLocation}
+                    onChange={onChangeHandler}
+                    onFocus={() => setSelectedInput("pickup")}
+                    autoComplete="off"
+                    inputMode="search"
+                  />
+                  {pickupConfirmed ? <CheckCircle2 className="shrink-0 text-emerald-600" size={18} /> : null}
+                </span>
+              </label>
+            </div>
+
+            <button
+              type="button"
+              className="route-swap-btn"
+              onClick={swapLocations}
+              aria-label="Swap pickup and destination"
+              disabled={!pickupLocation && !destinationLocation}
+            >
+              <ArrowDownUp size={15} />
+            </button>
+
+            <div className="relative z-10 mt-2 flex items-center gap-3">
+              <span className="route-dot route-dot-destination" />
+              <label className={`location-input-shell ${selectedInput === "destination" ? "location-input-shell-active" : ""}`}>
+                <span className="location-input-label">Drop-off</span>
+                <span className="flex min-w-0 items-center gap-2">
+                  <input
+                    id="destination"
+                    placeholder="Where are you going?"
+                    className="location-input"
+                    value={destinationLocation}
+                    onChange={onChangeHandler}
+                    onFocus={() => setSelectedInput("destination")}
+                    autoComplete="off"
+                    inputMode="search"
+                  />
+                  {destinationConfirmed ? <CheckCircle2 className="shrink-0 text-emerald-600" size={18} /> : null}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <button type="button" onClick={useCurrentLocationAsPickup} disabled={locationActionLoading} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] border border-emerald-100 bg-emerald-50 px-3 text-xs font-black text-emerald-800 disabled:opacity-60"><Navigation size={15} /> {locationActionLoading ? "Finding your location…" : "Use my current location for pickup"}</button>
+
+          {isLocationSearching ? (
+            <div className="min-h-0 overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.10)]">
+              <LocationSuggestions
+                suggestions={locationSuggestion}
+                setSuggestions={setLocationSuggestion}
+                setPickupLocation={setPickupLocation}
+                setDestinationLocation={setDestinationLocation}
+                input={selectedInput}
+                loading={suggestionLoading}
+                query={activeSearchValue}
+                onSelectSuggestion={selectLocationSuggestion}
+              />
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="mini-label">Popular destinations</p>
+                  <span className="text-[10px] font-bold text-slate-400">Lagos</span>
+                </div>
+                <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
+                  {popularDestinations.map(({ label, value, icon: Icon }) => (
+                    <button key={value} type="button" className="destination-chip" onClick={() => chooseQuickDestination(value)}>
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700"><Icon size={15} /></span>
+                      <span className="whitespace-nowrap">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {savedPlaces.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between"><p className="mini-label">Saved places</p><button type="button" onClick={() => window.location.assign("/user/tools")} className="text-[10px] font-black text-emerald-700">Manage</button></div>
+                  <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
+                    {savedPlaces.slice(0, 4).map((place) => <button key={place._id || place.address} type="button" className="destination-chip" onClick={() => chooseQuickDestination(place.address)}><MapPin size={14} className="text-emerald-600" /><span className="whitespace-nowrap">{place.label || place.address?.split(",")[0]}</span></button>)}
+                  </div>
+                </div>
+              ) : null}
+
+              {recentPlaces.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="mini-label">Recent places</p>
+                  <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
+                    {recentPlaces.slice(0, 3).map((place) => (
+                      <button key={place} type="button" className="recent-place-chip" onClick={() => chooseQuickDestination(place)}>
+                        <Clock3 size={14} className="shrink-0 text-slate-400" />
+                        <span className="max-w-[170px] truncate">{place.split(",")[0]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="mini-label">When</p>
+                  {pickupConfirmed && destinationConfirmed ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-emerald-700"><CheckCircle2 size={11} /> Locations ready</span>
+                  ) : null}
+                </div>
+                <div className="grid grid-cols-2 gap-2 rounded-[20px] bg-slate-100 p-1.5">
+                  <button type="button" className={`flex min-h-11 items-center justify-center gap-2 rounded-2xl px-3 text-xs font-black transition ${rideMode === "now" ? "bg-white text-slate-950 shadow-sm" : "text-slate-500"}`} onClick={() => setRideMode("now")}><Navigation size={14} /> Ride now</button>
+                  <button type="button" className={`flex min-h-11 items-center justify-center gap-2 rounded-2xl px-3 text-xs font-black transition ${rideMode === "scheduled" ? "bg-white text-slate-950 shadow-sm" : "text-slate-500"}`} onClick={() => setRideMode("scheduled")}><CalendarClock size={14} /> Schedule</button>
+                </div>
+              </div>
+
+              {rideMode === "scheduled" && (
+                <div className="premium-card p-3">
+                  <label className="mini-label">Pickup date & time</label>
+                  <input type="datetime-local" className="input-box mt-2 bg-white" value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} />
+                  <p className="mt-2 text-[11px] font-semibold leading-4 text-slate-500">Your request will be prepared for the selected pickup time.</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="ride-benefit ride-benefit-green"><Banknote size={14} /><span>Cash</span></div>
+                <div className="ride-benefit ride-benefit-blue"><Navigation size={14} /><span>Live trip</span></div>
+                <div className="ride-benefit ride-benefit-rose"><ShieldCheck size={14} /><span>Safety</span></div>
+              </div>
+            </>
+          )}
+
+          {!isLocationSearching && (!pickupConfirmed || !destinationConfirmed) ? (
+            <div className="flex items-center gap-2 rounded-2xl bg-amber-50 px-3 py-2.5 text-[11px] font-bold text-amber-800">
+              <MapPin size={14} className="shrink-0" /> Select pickup and drop-off from the suggestions to continue.
+            </div>
+          ) : null}
+
+          <Button
+            title={pickupConfirmed && destinationConfirmed ? "See ride options" : "Select both locations"}
+            loading={loading}
+            loadingMessage="Calculating route"
+            disabled={!pickupConfirmed || !destinationConfirmed || (rideMode === "scheduled" && !scheduledFor)}
+            fun={() => getDistanceAndFare(pickupLocation, destinationLocation)}
+          />
+        </div>
+      )}
+
+      <SelectVehicle selectedVehicle={setSelectedVehicle} showPanel={showSelectVehiclePanel} setShowPanel={setShowSelectVehiclePanel} showPreviousPanel={setShowFindTripPanel} showNextPanel={setShowRideDetailsPanel} fare={fare} currency={currency} routeInfo={routeInfo} />
+
+      <RideDetails pickupLocation={pickupLocation} destinationLocation={destinationLocation} selectedVehicle={selectedVehicle} fare={fare} currency={currency} routeInfo={routeInfo} showPanel={showRideDetailsPanel} setShowPanel={setShowRideDetailsPanel} showPreviousPanel={setShowSelectVehiclePanel} createRide={createRide} cancelRide={cancelRide} loading={loading} rideCreated={rideCreated} confirmedRideData={confirmedRideData} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} paymentMethods={paymentMethods} promoCode={promoCode} setPromoCode={setPromoCode} />
+
+      {(confirmedRideData || rideCreated) && (
+        <div className="fixed fab-stack-nav left-4 right-4 z-40 mx-auto grid max-w-xl grid-cols-2 gap-3 pointer-events-auto">
+          <button type="button" className="rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white shadow-xl" onClick={() => setShowEmergencyModal(true)}>Emergency / SOS</button>
+          <button type="button" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-950 shadow-xl" onClick={() => setShowComplaintModal(true)}>File complaint</button>
+        </div>
+      )}
+
+      {showRatingModal && (
+        <div className="modal-backdrop">
+          <div className="modal-sheet">
+            <p className="mini-label">Trip completed</p>
+            <h2 className="text-2xl font-black text-slate-950">Rate your driver</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-500">Your feedback helps management monitor service quality.</p>
+            <div className="mt-4 grid grid-cols-5 gap-1.5 min-[360px]:gap-2">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button key={value} className={`rounded-2xl border py-3 text-base font-black min-[360px]:text-lg ${rating === value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"}`} onClick={() => { setRating(value); setRatingTags([]); }}>
+                  {value}★
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {(rating >= 4
+                ? ["Safe driving", "Professional", "Clean vehicle", "Friendly", "Smooth pickup"]
+                : ["Late pickup", "Unsafe driving", "Rude behaviour", "Vehicle issue", "Wrong route"]
+              ).map((tag) => {
+                const selected = ratingTags.includes(tag);
+                return <button key={tag} type="button" onClick={() => setRatingTags((items) => selected ? items.filter((item) => item !== tag) : [...items, tag].slice(0, 6))} className={`rounded-full border px-3 py-2 text-xs font-black transition ${selected ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-slate-50 text-slate-600"}`}>{tag}</button>;
+              })}
+            </div>
+            <textarea className="input-box mt-4 min-h-28 resize-none" placeholder="Leave a comment (optional)" value={review} onChange={(e) => setReview(e.target.value)} />
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button className="secondary-btn w-full" onClick={() => setShowRatingModal(false)}>Later</button>
+              <button className="primary-btn w-full" onClick={submitRating}>Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEmergencyModal && (
+        <div className="modal-backdrop">
+          <div className="modal-sheet">
+            <p className="mini-label">Passenger safety</p>
+            <h2 className="text-2xl font-black text-slate-950">Emergency / SOS</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-500">This creates an urgent admin alert with ride and location context.</p>
+            <select className="input-box mt-4" value={emergencyType} onChange={(e) => setEmergencyType(e.target.value)}>
+              <option value="unsafe_driving">Unsafe driving</option>
+              <option value="driver_behavior">Driver behavior issue</option>
+              <option value="wrong_route">Wrong route</option>
+              <option value="medical">Medical emergency</option>
+              <option value="vehicle_issue">Vehicle issue</option>
+              <option value="other">Other</option>
+            </select>
+            <textarea className="input-box mt-3 min-h-28 resize-none" placeholder="Add details for admin" value={emergencyMessage} onChange={(e) => setEmergencyMessage(e.target.value)} />
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button className="secondary-btn" onClick={() => setShowEmergencyModal(false)}>Cancel</button>
+              <button className="danger-btn" onClick={submitEmergency} disabled={loading}>Send SOS</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showComplaintModal && (
+        <div className="modal-backdrop">
+          <div className="modal-sheet">
+            <p className="mini-label">Support case</p>
+            <h2 className="text-2xl font-black text-slate-950">Complaint against driver</h2>
+            <select className="input-box mt-4" value={complaintCategory} onChange={(e) => setComplaintCategory(e.target.value)}>
+              <option value="driver_behavior">Driver behavior</option>
+              <option value="unsafe_driving">Unsafe driving</option>
+              <option value="vehicle_condition">Vehicle condition</option>
+              <option value="fare_issue">Fare issue</option>
+              <option value="late_arrival">Late arrival</option>
+              <option value="other">Other</option>
+            </select>
+            <textarea className="input-box mt-3 min-h-32 resize-none" placeholder="Describe what happened" value={complaintDescription} onChange={(e) => setComplaintDescription(e.target.value)} />
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button className="secondary-btn" onClick={() => setShowComplaintModal(false)}>Cancel</button>
+              <button className="primary-btn" onClick={submitComplaint} disabled={loading || complaintDescription.length < 5}>Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <MobileBottomNav userType="user" />
+    </div>
+  );
+}
+
+export default UserHomeScreen;
