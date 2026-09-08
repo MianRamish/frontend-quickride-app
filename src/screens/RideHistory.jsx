@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Banknote, Calendar, ChevronDown, Clock, HelpCircle, Route, Sparkles, Tag } from "lucide-react";
@@ -66,10 +67,36 @@ function RideHistory() {
 
       {supportRide && <div className="modal-backdrop"><div className="modal-sheet"><p className="mini-label">Trip support</p><h2 className="text-2xl font-black text-slate-950">Help with this trip</h2><p className="mt-1 text-xs font-semibold text-slate-500">Ride #{supportRide._id?.slice(-8)} • {supportRide.pickup?.split(",")[0]} → {supportRide.destination?.split(",")[0]}</p><select className="input-box mt-4" value={supportCategory} onChange={(e) => setSupportCategory(e.target.value)}><option value="fare_issue">Fare issue</option><option value="lost_item">Lost item</option><option value={role === "captain" ? "passenger_behavior" : "driver_behavior"}>{role === "captain" ? "Passenger issue" : "Driver issue"}</option><option value="safety">Safety concern</option><option value="wrong_route">Wrong route</option><option value="other">Other</option></select><textarea className="input-box mt-3 min-h-28 resize-none" value={supportText} onChange={(e) => setSupportText(e.target.value)} placeholder="Describe what happened" /><div className="mt-4 grid grid-cols-2 gap-3"><button className="secondary-btn" onClick={() => setSupportRide(null)}>Cancel</button><button className="primary-btn" onClick={sendSupport} disabled={supportText.trim().length < 5}>Submit case</button></div></div></div>}
       <MobileBottomNav userType={role} />
+=======
+import { formatMoney } from "../utils/formatMoney";
+import { useState } from "react";
+import { ArrowLeft, Calendar, ChevronUp, Clock, CreditCard, MapPinMinus, MapPinPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+function RideHistory() {
+  const navigation = useNavigate();
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const [user] = useState(userData.data || { rides: [] });
+  const groups = classifyAndSortRides(user.rides || []);
+
+  return (
+    <div className="screen-safe safe-scroll bg-slate-50 p-5">
+      <div className="mb-6 flex items-center gap-3">
+        <button className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm" onClick={() => navigation(-1)}><ArrowLeft /></button>
+        <div>
+          <p className="mini-label">Trips</p>
+          <h1 className="text-3xl font-black tracking-tight text-slate-950">Ride history</h1>
+        </div>
+      </div>
+      <HistoryGroup title="Today" rides={groups.today} />
+      <HistoryGroup title="Yesterday" rides={groups.yesterday} />
+      <HistoryGroup title="Earlier" rides={groups.earlier} />
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     </div>
   );
 }
 
+<<<<<<< HEAD
 function Stat({ label, value }) { return <div className="rounded-[22px] bg-white/10 p-3 backdrop-blur"><p className="text-[9px] font-black uppercase tracking-[.14em] text-slate-400">{label}</p><p className="mt-1 text-2xl font-black">{value}</p></div>; }
 
 function HistoryGroup({ title, rides, onHelp, onCancel }) {
@@ -91,5 +118,67 @@ export const Ride = ({ ride, onHelp, onCancel }) => {
 };
 
 function Address({ label, text, destination=false }) { return <div className="relative z-10 flex items-center gap-3"><span className={`route-dot ${destination ? "route-dot-destination" : ""}`} /><div className="min-w-0 flex-1 rounded-2xl bg-white px-3 py-2.5 shadow-sm"><p className="text-[9px] font-black uppercase tracking-[.14em] text-slate-400">{label}</p><p className="truncate text-xs font-black text-slate-800">{text}</p></div></div>; }
+=======
+function HistoryGroup({ title, rides }) {
+  return (
+    <details open className="group mb-4">
+      <summary className="mb-3 flex cursor-pointer select-none items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-800 shadow-sm">
+        <span>{title}</span>
+        <ChevronUp className="h-5 w-5 text-slate-500 transition-transform duration-300 group-open:rotate-180" />
+      </summary>
+      <div className="space-y-3">
+        {rides.length > 0 ? rides.map((ride) => <Ride ride={ride} key={ride._id} />) : <p className="rounded-2xl bg-white p-4 text-center text-sm font-semibold text-slate-500">No rides found</p>}
+      </div>
+    </details>
+  );
+}
+
+function classifyAndSortRides(rides) {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const out = { today: [], yesterday: [], earlier: [] };
+  rides.forEach((ride) => {
+    const date = new Date(ride.createdAt);
+    if (sameDay(date, today)) out.today.push(ride);
+    else if (sameDay(date, yesterday)) out.yesterday.push(ride);
+    else out.earlier.push(ride);
+  });
+  Object.values(out).forEach((arr) => arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+  return out;
+}
+
+export const Ride = ({ ride }) => {
+  const date = new Date(ride.createdAt);
+  const dateText = date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  const timeText = date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return (
+    <div className="soft-card p-4 shadow-none">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-500">
+        <span className="flex items-center gap-1"><Calendar size={14} /> {dateText}</span>
+        <span className="flex items-center gap-1"><Clock size={14} /> {timeText}</span>
+        <span className="flex items-center gap-1 text-slate-950"><CreditCard size={14} /> {formatMoney(ride.fare, ride.currency || "USD")}</span>
+      </div>
+      <div className="space-y-3">
+        <Address icon={<MapPinMinus size={16} />} label="Pickup" text={ride.pickup} />
+        <Address icon={<MapPinPlus size={16} />} label="Drop-off" text={ride.destination} />
+      </div>
+    </div>
+  );
+};
+
+function Address({ icon, label, text }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-950">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+        <p className="truncate text-sm font-bold text-slate-700">{text}</p>
+      </div>
+    </div>
+  );
+}
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
 export default RideHistory;

@@ -2,14 +2,25 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
+<<<<<<< HEAD
+=======
+import VerifyEmail from "../components/VerifyEmail";
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 import Loading from "./Loading";
 
 function UserProtectedWrapper({ children }) {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+<<<<<<< HEAD
   const { setUser } = useUser();
 
   const [loading, setLoading] = useState(true);
+=======
+  const { user, setUser } = useUser();
+
+  const [loading, setLoading] = useState(true);
+  const [isVerified, setIsVerified] = useState(null);
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   useEffect(() => {
     if (!token) {
@@ -32,6 +43,10 @@ function UserProtectedWrapper({ children }) {
             "userData",
             JSON.stringify({ type: "user", data: user })
           );
+<<<<<<< HEAD
+=======
+          setIsVerified(user.emailVerified);
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
         }
       })
       .catch(() => {
@@ -46,6 +61,12 @@ function UserProtectedWrapper({ children }) {
 
   if (loading) return <Loading />;
 
+<<<<<<< HEAD
+=======
+  if (isVerified === false) {
+    return <VerifyEmail user={user} role={"user"} />;
+  }
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   return <>{children}</>;
 }

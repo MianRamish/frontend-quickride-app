@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 import { useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import LiveMap from "../components/LiveMap";
 import { SocketDataContext } from "../contexts/SocketContext";
+=======
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import LiveMap from "../components/LiveMap";
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
@@ -37,9 +43,12 @@ const tabs = [
   { id: "bonuses", label: "Bonuses", icon: Gift },
   { id: "documents", label: "Documents", icon: FileCheck2 },
   { id: "reviews", label: "Reviews", icon: MessageSquareText },
+<<<<<<< HEAD
   { id: "pricing", label: "Pricing & Matching", icon: CircleDollarSign },
   { id: "settlements", label: "Cash Settlements", icon: WalletCards },
   { id: "promos", label: "Promo Codes", icon: Gift },
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 ];
 
 const emptyPassenger = { firstname: "", lastname: "", email: "", phone: "", password: "Password123!" };
@@ -55,8 +64,13 @@ const emptyDriver = {
   vehicleColor: "Black",
   vehicleNumber: "TBD",
   vehicleCapacity: 4,
+<<<<<<< HEAD
   latitude: 6.5244,
   longitude: 3.3792,
+=======
+  latitude: 43.6532,
+  longitude: -79.3832,
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 };
 const emptyVehicle = {
   captainId: "",
@@ -90,9 +104,15 @@ function api(token) {
   return axios.create({ baseURL: import.meta.env.VITE_SERVER_URL, headers: { token } });
 }
 
+<<<<<<< HEAD
 function money(value, currency = "NGN") {
   const n = Number(value || 0);
   return new Intl.NumberFormat("en-NG", { style: "currency", currency }).format(n);
+=======
+function money(value, currency = "USD") {
+  const n = Number(value || 0);
+  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 }
 
 function fullName(person) {
@@ -139,7 +159,10 @@ function openStoredDocument(url, label = "Document") {
 
 export default function AdminHome() {
   const navigate = useNavigate();
+<<<<<<< HEAD
   const { socket } = useContext(SocketDataContext);
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const token = useMemo(() => localStorage.getItem("adminToken") || "", []);
   const http = useMemo(() => api(token), [token]);
 
@@ -159,11 +182,14 @@ export default function AdminHome() {
   const [complaints, setComplaints] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   const [scheduledRides, setScheduledRides] = useState([]);
+<<<<<<< HEAD
   const [pricing, setPricing] = useState(null);
   const [settlements, setSettlements] = useState([]);
   const [promos, setPromos] = useState([]);
   const [liveOps, setLiveOps] = useState({ drivers: [], rides: [], staleSeconds: 120 });
   const [promoForm, setPromoForm] = useState({ code: "", description: "", type: "percent", value: 10, maxDiscount: "", minFare: 0, usageLimit: "", perUserLimit: 1, startsAt: "", endsAt: "" });
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   const [passengerForm, setPassengerForm] = useState(emptyPassenger);
   const [driverForm, setDriverForm] = useState(emptyDriver);
@@ -175,7 +201,11 @@ export default function AdminHome() {
     if (!token) return navigate("/admin/login");
     try {
       setLoading(true);
+<<<<<<< HEAD
       const [summaryRes, usersRes, captainsRes, vehiclesRes, ridesRes, onlineRes, reviewsRes, payoutsRes, bonusesRes, emergenciesRes, complaintsRes, withdrawalsRes, scheduledRes, pricingRes, settlementsRes, promosRes, liveOpsRes] = await Promise.all([
+=======
+      const [summaryRes, usersRes, captainsRes, vehiclesRes, ridesRes, onlineRes, reviewsRes, payoutsRes, bonusesRes, emergenciesRes, complaintsRes, withdrawalsRes, scheduledRes] = await Promise.all([
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
         http.get("/api/admin/analytics/summary"),
         http.get("/api/admin/users"),
         http.get("/api/admin/captains"),
@@ -189,10 +219,13 @@ export default function AdminHome() {
         http.get("/api/admin/complaints"),
         http.get("/api/admin/withdrawals"),
         http.get("/api/admin/scheduled-rides"),
+<<<<<<< HEAD
         http.get("/api/admin/pricing"),
         http.get("/api/admin/settlements"),
         http.get("/api/admin/promo-codes"),
         http.get("/api/admin/live-operations"),
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       ]);
       setSummary(summaryRes.data || {});
       setUsers(usersRes.data || []);
@@ -207,10 +240,13 @@ export default function AdminHome() {
       setComplaints(complaintsRes.data || []);
       setWithdrawals(withdrawalsRes.data || []);
       setScheduledRides(scheduledRes.data || []);
+<<<<<<< HEAD
       setPricing(pricingRes.data || null);
       setSettlements(settlementsRes.data || []);
       setPromos(promosRes.data || []);
       setLiveOps(liveOpsRes.data || { drivers: [], rides: [], staleSeconds: 120 });
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     } catch (e) {
       if (e?.response?.status === 401) navigate("/admin/login");
       setNotice(e?.response?.data?.message || "Unable to load admin data.");
@@ -223,6 +259,7 @@ export default function AdminHome() {
     load();
   }, []);
 
+<<<<<<< HEAD
   useEffect(() => {
     if (!socket || !token) return undefined;
     const joinAdmin = () => socket.emit("join-admin", { token });
@@ -266,6 +303,8 @@ export default function AdminHome() {
     };
   }, [socket, token, http]);
 
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const submit = async (handler, success) => {
     try {
       setLoading(true);
@@ -281,14 +320,20 @@ export default function AdminHome() {
   };
 
   const logout = () => {
+<<<<<<< HEAD
     socket?.emit("leave-session");
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     localStorage.removeItem("adminToken");
     navigate("/admin/login");
   };
 
   const approve = (id) => submit(() => http.patch(`/api/admin/captains/${id}/approve`), "Driver approved.");
   const toggleDriver = (driver) => submit(() => http.patch(`/api/admin/captains/${driver._id}`, { status: driver.status === "active" ? "inactive" : "active" }), "Driver status updated.");
+<<<<<<< HEAD
   const suspendDriver = (driver) => submit(() => http.patch(`/api/admin/captains/${driver._id}`, { status: driver.status === "suspended" ? "active" : "suspended" }), driver.status === "suspended" ? "Driver restored." : "Driver suspended.");
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const removeDriver = (id) => window.confirm("Remove this driver and their vehicles?") && submit(() => http.delete(`/api/admin/captains/${id}`), "Driver removed.");
   const removeUser = (id) => window.confirm("Remove this passenger?") && submit(() => http.delete(`/api/admin/users/${id}`), "Passenger removed.");
   const removeVehicle = (id) => window.confirm("Remove this vehicle?") && submit(() => http.delete(`/api/admin/vehicles/${id}`), "Vehicle removed.");
@@ -299,6 +344,7 @@ export default function AdminHome() {
   const updateEmergency = (id, status) => submit(() => http.patch(`/api/admin/emergencies/${id}`, { status }), "Emergency updated.");
   const updateComplaint = (id, status) => submit(() => http.patch(`/api/admin/complaints/${id}`, { status }), "Complaint updated.");
   const updateWithdrawal = (id, status) => submit(() => http.patch(`/api/admin/withdrawals/${id}`, { status }), "Withdrawal updated.");
+<<<<<<< HEAD
   const togglePassenger = (user) => submit(() => http.patch(`/api/admin/users/${user._id}`, { status: user.status === "suspended" ? "active" : "suspended" }), user.status === "suspended" ? "Passenger activated." : "Passenger suspended.");
   const reviewDocument = (driverId, docKey, status) => {
     const note = status === "rejected" ? (window.prompt("Why is this document rejected?", "Please upload a clear, valid document.") || "Document rejected") : status === "approved" ? "Reviewed and approved by admin" : "Document needs review";
@@ -314,6 +360,8 @@ export default function AdminHome() {
   };
   const createPromo = (e) => { e.preventDefault(); return submit(async () => { const payload = { ...promoForm, code: promoForm.code.trim().toUpperCase(), value: Number(promoForm.value), minFare: Number(promoForm.minFare || 0), perUserLimit: Number(promoForm.perUserLimit || 1), maxDiscount: promoForm.maxDiscount === "" ? null : Number(promoForm.maxDiscount), usageLimit: promoForm.usageLimit === "" ? null : Number(promoForm.usageLimit), startsAt: promoForm.startsAt || undefined, endsAt: promoForm.endsAt || null }; await http.post("/api/admin/promo-codes", payload); setPromoForm({ code: "", description: "", type: "percent", value: 10, maxDiscount: "", minFare: 0, usageLimit: "", perUserLimit: 1, startsAt: "", endsAt: "" }); }, "Promo code created."); };
   const togglePromo = (promo) => submit(() => http.patch(`/api/admin/promo-codes/${promo._id}`, { isActive: !promo.isActive }), "Promo status updated.");
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   const createPassenger = (e) => {
     e.preventDefault();
@@ -375,10 +423,17 @@ export default function AdminHome() {
         isApproved: !!c.isApproved,
       };
       return [
+<<<<<<< HEAD
         { ...base, id: `${c._id}-license`, docKey: "license", type: "Driver License", expiry: c.documents?.licenseExpiry, status: c.documents?.licenseUrl ? (isExpired(c.documents?.licenseExpiry) ? "Expired" : "Valid") : "Missing", reviewStatus: c.documents?.reviews?.license?.status || "pending", reviewNote: c.documents?.reviews?.license?.note || "", url: c.documents?.licenseUrl },
         { ...base, id: `${c._id}-id`, docKey: "governmentId", type: "Government ID", expiry: null, status: c.documents?.governmentIdUrl ? "Uploaded" : "Missing", reviewStatus: c.documents?.reviews?.governmentId?.status || "pending", reviewNote: c.documents?.reviews?.governmentId?.note || "", url: c.documents?.governmentIdUrl },
         { ...base, id: `${c._id}-reg-driver`, docKey: "registration", type: "Vehicle Registration", expiry: c.documents?.vehicleRegistrationExpiry, status: c.documents?.vehicleRegistrationUrl ? (isExpired(c.documents?.vehicleRegistrationExpiry) ? "Expired" : "Valid") : "Missing", reviewStatus: c.documents?.reviews?.registration?.status || "pending", reviewNote: c.documents?.reviews?.registration?.note || "", url: c.documents?.vehicleRegistrationUrl },
         { ...base, id: `${c._id}-ins-driver`, docKey: "insurance", type: "Vehicle Insurance", expiry: c.documents?.insuranceExpiry, status: c.documents?.insuranceUrl ? (isExpired(c.documents?.insuranceExpiry) ? "Expired" : "Valid") : "Missing", reviewStatus: c.documents?.reviews?.insurance?.status || "pending", reviewNote: c.documents?.reviews?.insurance?.note || "", url: c.documents?.insuranceUrl },
+=======
+        { ...base, id: `${c._id}-license`, type: "Driver License", expiry: c.documents?.licenseExpiry, status: c.documents?.licenseUrl ? (isExpired(c.documents?.licenseExpiry) ? "Expired" : "Valid") : "Missing", url: c.documents?.licenseUrl },
+        { ...base, id: `${c._id}-id`, type: "Government ID", expiry: null, status: c.documents?.governmentIdUrl ? "Uploaded" : "Missing", url: c.documents?.governmentIdUrl },
+        { ...base, id: `${c._id}-reg-driver`, type: "Vehicle Registration", expiry: c.documents?.vehicleRegistrationExpiry, status: c.documents?.vehicleRegistrationUrl ? (isExpired(c.documents?.vehicleRegistrationExpiry) ? "Expired" : "Valid") : "Missing", url: c.documents?.vehicleRegistrationUrl },
+        { ...base, id: `${c._id}-ins-driver`, type: "Vehicle Insurance", expiry: c.documents?.insuranceExpiry, status: c.documents?.insuranceUrl ? (isExpired(c.documents?.insuranceExpiry) ? "Expired" : "Valid") : "Missing", url: c.documents?.insuranceUrl },
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       ];
     });
     const vehicleDocs = vehicles.flatMap((v) => {
@@ -408,7 +463,11 @@ export default function AdminHome() {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-200">QuickRide Admin</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight lg:text-4xl">Operations dashboard</h1>
+<<<<<<< HEAD
             <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-300">Manage live rides, drivers, safety cases, pricing, cash settlements, promos, payouts, reviews and driver verification from one responsive operations console.</p>
+=======
+            <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-300">Manage passengers, drivers, vehicles, rides, payouts, reviews, bonus campaigns, documents, and live fleet activity from one responsive admin panel.</p>
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
           </div>
           <div className="flex flex-wrap gap-2">
             <button className="admin-btn-secondary border-white/15 bg-white/10 text-white hover:bg-white/20" onClick={load} disabled={loading}><RefreshCcw size={16} /> <span className="ml-2">Refresh</span></button>
@@ -432,12 +491,18 @@ export default function AdminHome() {
 
           <main className="min-w-0 space-y-4">
             {activeTab === "overview" && <Overview summary={summary} rides={rides} captains={captains} users={users} payouts={payouts} bonuses={bonuses} docs={docs} />}
+<<<<<<< HEAD
             {activeTab === "passengers" && <Passengers users={users} form={passengerForm} setForm={setPassengerForm} onSubmit={createPassenger} onDelete={removeUser} toggleStatus={togglePassenger} />}
             {activeTab === "drivers" && <Drivers captains={captains} form={driverForm} setForm={setDriverForm} onSubmit={createDriver} approve={approve} toggleDriver={toggleDriver} suspendDriver={suspendDriver} removeDriver={removeDriver} />}
+=======
+            {activeTab === "passengers" && <Passengers users={users} form={passengerForm} setForm={setPassengerForm} onSubmit={createPassenger} onDelete={removeUser} />}
+            {activeTab === "drivers" && <Drivers captains={captains} form={driverForm} setForm={setDriverForm} onSubmit={createDriver} approve={approve} toggleDriver={toggleDriver} removeDriver={removeDriver} />}
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
             {activeTab === "vehicles" && <Vehicles vehicles={vehicles} captains={captains} form={vehicleForm} setForm={setVehicleForm} onSubmit={createVehicle} onDelete={removeVehicle} />}
             {activeTab === "rides" && <Rides rides={rides} updateStatus={updateRideStatus} />}
             {activeTab === "scheduled" && <ScheduledRides rides={scheduledRides} updateStatus={updateRideStatus} />}
             {activeTab === "safety" && <SafetyCenter emergencies={emergencies} complaints={complaints} updateEmergency={updateEmergency} updateComplaint={updateComplaint} />}
+<<<<<<< HEAD
             {activeTab === "tracking" && <Tracking markers={markers} online={online} liveOps={liveOps} />}
             {activeTab === "withdrawals" && <Withdrawals withdrawals={withdrawals} updateWithdrawal={updateWithdrawal} />}
             {activeTab === "payouts" && <Payouts payouts={payouts} captains={captains} form={payoutForm} setForm={setPayoutForm} onSubmit={createPayout} togglePaid={markPayoutPaid} />}
@@ -447,6 +512,14 @@ export default function AdminHome() {
             {activeTab === "pricing" && <Pricing pricing={pricing} onSave={savePricing} />}
             {activeTab === "settlements" && <Settlements items={settlements} onSettle={settleCash} />}
             {activeTab === "promos" && <Promos promos={promos} form={promoForm} setForm={setPromoForm} onSubmit={createPromo} togglePromo={togglePromo} />}
+=======
+            {activeTab === "tracking" && <Tracking markers={markers} online={online} />}
+            {activeTab === "withdrawals" && <Withdrawals withdrawals={withdrawals} updateWithdrawal={updateWithdrawal} />}
+            {activeTab === "payouts" && <Payouts payouts={payouts} captains={captains} form={payoutForm} setForm={setPayoutForm} onSubmit={createPayout} togglePaid={markPayoutPaid} />}
+            {activeTab === "bonuses" && <Bonuses bonuses={bonuses} form={bonusForm} setForm={setBonusForm} onSubmit={createBonus} toggleBonus={toggleBonus} />}
+            {activeTab === "documents" && <Documents docs={docs} approve={approve} />}
+            {activeTab === "reviews" && <Reviews reviews={reviews} hideReview={hideReview} />}
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
           </main>
         </div>
       </div>
@@ -489,7 +562,11 @@ function Overview({ summary, rides, captains, users, payouts, bonuses, docs }) {
   );
 }
 
+<<<<<<< HEAD
 function Passengers({ users, form, setForm, onSubmit, onDelete, toggleStatus }) {
+=======
+function Passengers({ users, form, setForm, onSubmit, onDelete }) {
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   return <CrudPanel title="Passenger Management" subtitle="Create, view, and remove passenger accounts." form={
     <form onSubmit={onSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
       <Input label="First name" value={form.firstname} onChange={(v) => setForm({ ...form, firstname: v })} required />
@@ -499,11 +576,19 @@ function Passengers({ users, form, setForm, onSubmit, onDelete, toggleStatus }) 
       <button className="admin-btn w-full" type="submit">Create passenger</button>
     </form>
   }>
+<<<<<<< HEAD
     <Table headers={["Name", "Email", "Phone", "Status", "Rating", "Joined", "Actions"]} rows={users.map((u) => [fullName(u), u.email, u.phone || "—", u.status || "active", `${u.rating?.avg || 0}★`, dateShort(u.createdAt), <div className="flex flex-wrap gap-2"><button className="admin-btn-secondary" onClick={() => toggleStatus(u)}>{u.status === "suspended" ? "Activate" : "Suspend"}</button><button className="admin-btn-danger" onClick={() => onDelete(u._id)}>Remove</button></div>])} />
   </CrudPanel>;
 }
 
 function Drivers({ captains, form, setForm, onSubmit, approve, toggleDriver, suspendDriver, removeDriver }) {
+=======
+    <Table headers={["Name", "Email", "Phone", "Verified", "Joined", "Actions"]} rows={users.map((u) => [fullName(u), u.email, u.phone || "—", String(!!u.emailVerified), dateShort(u.createdAt), <button className="admin-btn-danger" onClick={() => onDelete(u._id)}>Remove</button>])} />
+  </CrudPanel>;
+}
+
+function Drivers({ captains, form, setForm, onSubmit, approve, toggleDriver, removeDriver }) {
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   return <CrudPanel title="Driver & Fleet Onboarding" subtitle="Create drivers, approve onboarding, and manage driver availability." form={
     <form onSubmit={onSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
       <Input label="First name" value={form.firstname} onChange={(v) => setForm({ ...form, firstname: v })} required />
@@ -519,7 +604,11 @@ function Drivers({ captains, form, setForm, onSubmit, approve, toggleDriver, sus
     <Table headers={["Driver", "Email", "Status", "Approved", "Rating", "Score", "Vehicle", "Actions"]} rows={captains.map((c) => [
       fullName(c), c.email, c.status, String(!!c.isApproved), `${c.rating?.avg ?? 0}★`, c.performanceScore ?? 100,
       c.activeVehicle ? `${c.activeVehicle.make || ""} ${c.activeVehicle.model || ""} ${c.activeVehicle.plateNumber || ""}` : `${c.vehicle?.color || ""} ${c.vehicle?.number || ""}`,
+<<<<<<< HEAD
       <div className="flex flex-wrap gap-2">{!c.isApproved && <button className="admin-btn" onClick={() => approve(c._id)}>Approve</button>}<button className="admin-btn-secondary" onClick={() => toggleDriver(c)} disabled={c.status === "suspended"}>{c.status === "active" ? "Deactivate" : "Activate"}</button><button className={c.status === "suspended" ? "admin-btn" : "admin-btn-danger"} onClick={() => suspendDriver(c)}>{c.status === "suspended" ? "Restore" : "Suspend"}</button><button className="admin-btn-danger" onClick={() => removeDriver(c._id)}>Remove</button></div>
+=======
+      <div className="flex flex-wrap gap-2">{!c.isApproved && <button className="admin-btn" onClick={() => approve(c._id)}>Approve</button>}<button className="admin-btn-secondary" onClick={() => toggleDriver(c)}>{c.status === "active" ? "Deactivate" : "Activate"}</button><button className="admin-btn-danger" onClick={() => removeDriver(c._id)}>Remove</button></div>
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     ])} />
   </CrudPanel>;
 }
@@ -549,8 +638,13 @@ function Vehicles({ vehicles, captains, form, setForm, onSubmit, onDelete }) {
 function Rides({ rides, updateStatus }) {
   return <CrudPanel title="Ride Management" subtitle="Monitor ride status, fare, passengers, drivers, and cancellation reasons.">
     <Table headers={["Ride", "Passenger", "Driver", "Route", "Fare", "Status", "Rating", "Actions"]} rows={rides.map((r) => [
+<<<<<<< HEAD
       r._id?.slice(-8), fullName(r.user), fullName(r.captain), <span className="block max-w-[360px] truncate">{r.pickup} → {r.destination}</span>, money(r.fare, r.currency || "NGN"), r.status, r.rating ? `${r.rating}★` : "—",
       <select className="admin-select min-w-36" value={r.status} onChange={(e) => updateStatus(r._id, e.target.value)}><option value="scheduled">scheduled</option><option value="pending">pending</option><option value="accepted">accepted</option><option value="arriving">arriving</option><option value="arrived">arrived</option><option value="ongoing">ongoing</option><option value="completed">completed</option><option value="cancelled">cancelled</option></select>
+=======
+      r._id?.slice(-8), fullName(r.user), fullName(r.captain), <span className="block max-w-[360px] truncate">{r.pickup} → {r.destination}</span>, money(r.fare, r.currency || "USD"), r.status, r.rating ? `${r.rating}★` : "—",
+      <select className="admin-select min-w-36" value={r.status} onChange={(e) => updateStatus(r._id, e.target.value)}><option value="scheduled">scheduled</option><option value="pending">pending</option><option value="accepted">accepted</option><option value="ongoing">ongoing</option><option value="completed">completed</option><option value="cancelled">cancelled</option></select>
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     ])} />
   </CrudPanel>;
 }
@@ -563,7 +657,11 @@ function ScheduledRides({ rides, updateStatus }) {
       fullName(r.user),
       <span className="block max-w-[420px] truncate">{r.pickup} → {r.destination}</span>,
       r.vehicle,
+<<<<<<< HEAD
       money(r.fare, r.currency || "NGN"),
+=======
+      money(r.fare, r.currency || "USD"),
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       r.status,
       <select className="admin-select min-w-36" value={r.status} onChange={(e) => updateStatus(r._id, e.target.value)}><option value="scheduled">scheduled</option><option value="pending">pending</option><option value="cancelled">cancelled</option></select>
     ])} />
@@ -602,7 +700,11 @@ function Withdrawals({ withdrawals, updateWithdrawal }) {
   return <CrudPanel title="Driver Withdrawal Requests" subtitle="Approve, pay, or reject driver withdrawal requests from available balances.">
     <Table headers={["Driver", "Amount", "Method", "Bank / account", "Status", "Requested", "Actions"]} rows={withdrawals.map((w) => [
       fullName(w.captain),
+<<<<<<< HEAD
       money(w.amount, w.currency || "NGN"),
+=======
+      money(w.amount, w.currency || "USD"),
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       w.method,
       <span className="block max-w-[300px] truncate">{[w.bankName, w.accountHolder, w.accountNumber].filter(Boolean).join(" • ") || w.payoutEmail || "—"}</span>,
       w.status,
@@ -612,8 +714,13 @@ function Withdrawals({ withdrawals, updateWithdrawal }) {
   </CrudPanel>;
 }
 
+<<<<<<< HEAD
 function Tracking({ markers, online, liveOps }) {
   return <section className="admin-card p-4 sm:p-5"><div className="mb-4"><p className="mini-label">Live fleet visibility</p><h2 className="text-2xl font-black">Online drivers</h2><p className="mt-1 text-sm font-semibold text-slate-500">Live GPS freshness, online drivers and active rides from Socket.IO. Stale drivers are excluded from matching.</p><div className="mt-3 grid grid-cols-3 gap-2"><MiniStat label="Online" value={liveOps?.drivers?.length ?? online.length} /><MiniStat label="Active rides" value={liveOps?.rides?.length ?? 0} /><MiniStat label="Stale after" value={`${liveOps?.staleSeconds || 120}s`} /></div></div><div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]"><LiveMap height="min(62dvh, 620px)" markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [6.5244, 3.3792]} /><div className="space-y-2 overflow-y-auto xl:max-h-[620px]">{online.map((c) => <div key={c._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3"><h3 className="font-black">{fullName(c)}</h3><p className="text-xs font-semibold text-slate-500">{c.email}</p><p className="mt-2 text-xs font-bold text-slate-700">Score {c.performanceScore ?? 100} • {c.rating?.avg ?? 0}★</p></div>)}</div></div></section>;
+=======
+function Tracking({ markers, online }) {
+  return <section className="admin-card p-4 sm:p-5"><div className="mb-4"><p className="mini-label">Live fleet visibility</p><h2 className="text-2xl font-black">Online drivers</h2><p className="mt-1 text-sm font-semibold text-slate-500">Current driver location and online status from active socket/location updates.</p></div><div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]"><LiveMap height="min(62dvh, 620px)" markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [43.6532, -79.3832]} /><div className="space-y-2 overflow-y-auto xl:max-h-[620px]">{online.map((c) => <div key={c._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3"><h3 className="font-black">{fullName(c)}</h3><p className="text-xs font-semibold text-slate-500">{c.email}</p><p className="mt-2 text-xs font-bold text-slate-700">Score {c.performanceScore ?? 100} • {c.rating?.avg ?? 0}★</p></div>)}</div></div></section>;
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 }
 
 function Payouts({ payouts, captains, form, setForm, onSubmit, togglePaid }) {
@@ -650,7 +757,11 @@ function Bonuses({ bonuses, form, setForm, onSubmit, toggleBonus }) {
   </CrudPanel>;
 }
 
+<<<<<<< HEAD
 function Documents({ docs, approve, reviewDocument }) {
+=======
+function Documents({ docs, approve }) {
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const badgeClass = (status) => status === "Valid" || status === "Uploaded"
     ? "bg-emerald-50 text-emerald-700"
     : status === "Expired"
@@ -665,13 +776,20 @@ function Documents({ docs, approve, reviewDocument }) {
       d.vehicle || "Driver profile",
       dateShort(d.expiry),
       <span className={`rounded-full px-2 py-1 text-xs font-black ${badgeClass(d.status)}`}>{d.status}</span>,
+<<<<<<< HEAD
       <div><span className="font-black capitalize">{d.reviewStatus || "pending"}</span>{d.reviewNote ? <p className="mt-1 max-w-[220px] text-[10px] font-semibold text-slate-400">{d.reviewNote}</p> : null}</div>,
       d.url ? <button type="button" className="text-left font-black text-blue-700 underline" onClick={() => openStoredDocument(d.url, d.type)}>View document</button> : "—",
       d.driverId && d.docKey ? <div className="flex flex-wrap gap-1"><button className="admin-btn" disabled={!d.url || d.status === "Expired"} onClick={() => reviewDocument(d.driverId, d.docKey, "approved")}>Approve doc</button><button className="admin-btn-danger" disabled={!d.url} onClick={() => reviewDocument(d.driverId, d.docKey, "rejected")}>Reject</button>{!d.isApproved && <button className="admin-btn-secondary" onClick={() => approve(d.driverId)}>Approve driver</button>}</div> : "—",
+=======
+      d.verificationStatus || "—",
+      d.url ? <button type="button" className="text-left font-black text-blue-700 underline" onClick={() => openStoredDocument(d.url, d.type)}>View document</button> : "—",
+      d.driverId && !d.isApproved ? <button className="admin-btn" onClick={() => approve(d.driverId)}>Approve driver</button> : "—",
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     ])} />
   </CrudPanel>;
 }
 
+<<<<<<< HEAD
 function Pricing({ pricing, onSave }) {
   const [form, setForm] = useState(null);
   useEffect(() => { if (pricing) setForm(JSON.parse(JSON.stringify(pricing))); }, [pricing]);
@@ -701,6 +819,8 @@ function Promos({ promos, form, setForm, onSubmit, togglePromo }) {
   </CrudPanel>;
 }
 
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 function Reviews({ reviews, hideReview }) {
   return <CrudPanel title="Review Moderation" subtitle="View customer ratings/comments and hide inappropriate reviews."><Table headers={["Rating", "Passenger", "Driver", "Comment", "Date", "Actions"]} rows={reviews.map((r) => [`${r.rating}★`, fullName(r.user), fullName(r.captain), <span className="block max-w-[420px] truncate">{r.review || "(hidden)"}</span>, dateShort(r.createdAt), r.review ? <button className="admin-btn-secondary" onClick={() => hideReview(r._id)}>Hide</button> : "—"])} /></CrudPanel>;
 }

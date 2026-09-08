@@ -7,15 +7,21 @@ import {
   SelectVehicle,
   RideDetails,
   Sidebar,
+<<<<<<< HEAD
   NetworkStatusBanner,
   NotificationBell,
   MobileBottomNav,
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 } from "../components";
 import axios from "axios";
 import debounce from "lodash.debounce";
 import { SocketDataContext } from "../contexts/SocketContext";
 import Console from "../utils/console";
+<<<<<<< HEAD
 import { ArrowDownUp, Banknote, CalendarClock, CheckCircle2, Clock3, GraduationCap, MapPin, Navigation, Plane, Search, ShieldCheck, Sparkles } from "lucide-react";
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
 function UserHomeScreen() {
   const token = localStorage.getItem("token");
@@ -26,12 +32,16 @@ function UserHomeScreen() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("");
+<<<<<<< HEAD
   const [ratingTags, setRatingTags] = useState([]);
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const [completedRide, setCompletedRide] = useState(null);
   const [position, setPosition] = useState(null);
 
   const [selectedInput, setSelectedInput] = useState("pickup");
   const [locationSuggestion, setLocationSuggestion] = useState([]);
+<<<<<<< HEAD
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [pickupConfirmed, setPickupConfirmed] = useState(false);
   const [destinationConfirmed, setDestinationConfirmed] = useState(false);
@@ -47,6 +57,12 @@ function UserHomeScreen() {
   const [destinationCoords, setDestinationCoords] = useState(null);
   const [routeCoords, setRouteCoords] = useState([]);
   const [routeInfo, setRouteInfo] = useState({ distanceText: "", durationText: "" });
+=======
+  const [mapCenter, setMapCenter] = useState([43.6532, -79.3832]);
+  const [pickupCoords, setPickupCoords] = useState(null);
+  const [destinationCoords, setDestinationCoords] = useState(null);
+  const [routeCoords, setRouteCoords] = useState([]);
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const [mapNotice, setMapNotice] = useState("");
   const [rideCreated, setRideCreated] = useState(false);
   const [rideMode, setRideMode] = useState("now");
@@ -62,6 +78,7 @@ function UserHomeScreen() {
   const [destinationLocation, setDestinationLocation] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("car");
   const [fare, setFare] = useState({ car: 0, bike: 0 });
+<<<<<<< HEAD
   const [currency, setCurrency] = useState("NGN");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentMethods, setPaymentMethods] = useState([
@@ -73,12 +90,18 @@ function UserHomeScreen() {
   const [savedPlaces, setSavedPlaces] = useState([]);
   const [locationActionLoading, setLocationActionLoading] = useState(false);
   const suggestionRequestId = useRef(0);
+=======
+  const [currency, setCurrency] = useState("USD");
+  const [confirmedRideData, setConfirmedRideData] = useState(null);
+  const rideTimeout = useRef(null);
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   const [showFindTripPanel, setShowFindTripPanel] = useState(true);
   const [showSelectVehiclePanel, setShowSelectVehiclePanel] = useState(false);
   const [showRideDetailsPanel, setShowRideDetailsPanel] = useState(false);
 
   const handleLocationChange = useCallback(
+<<<<<<< HEAD
     debounce(async (inputValue, authToken, requestId, userLat, userLng) => {
       if (inputValue.trim().length < 3) return;
       try {
@@ -133,10 +156,37 @@ function UserHomeScreen() {
       );
     } else {
       setSuggestionLoading(false);
+=======
+    debounce(async (inputValue, authToken) => {
+      if (inputValue.length < 3) return;
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_SERVER_URL}/map/get-suggestions?input=${encodeURIComponent(inputValue)}`,
+          { headers: { token: authToken } }
+        );
+        setLocationSuggestion(response.data || []);
+      } catch (error) {
+        Console.error(error);
+      }
+    }, 700),
+    []
+  );
+
+  const onChangeHandler = (e) => {
+    const { id, value } = e.target;
+    setSelectedInput(id);
+    if (id === "pickup") setPickupLocation(value);
+    if (id === "destination") setDestinationLocation(value);
+
+    if (value.length >= 3) {
+      handleLocationChange(value, token);
+    } else {
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       setLocationSuggestion([]);
     }
   };
 
+<<<<<<< HEAD
   const rememberPlace = (place) => {
     const updated = [place, ...recentPlaces.filter((item) => item !== place)].slice(0, 4);
     setRecentPlaces(updated);
@@ -171,6 +221,8 @@ function UserHomeScreen() {
     setSuggestionLoading(false);
   };
 
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const getDistanceAndFare = async (pickup, destination) => {
     try {
       setLoading(true);
@@ -179,12 +231,17 @@ function UserHomeScreen() {
         { headers: { token } }
       );
       setFare(response.data.fare || { car: 0, bike: 0 });
+<<<<<<< HEAD
       setCurrency(response.data.market?.currency || "NGN");
       const distanceTime = response.data.distanceTime || {};
       setRouteInfo({
         distanceText: distanceTime?.distance?.text || "",
         durationText: distanceTime?.duration?.text || "",
       });
+=======
+      setCurrency(response.data.market?.currency || "USD");
+      const distanceTime = response.data.distanceTime || {};
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       const origin = distanceTime.originCoordinates;
       const destinationPoint = distanceTime.destinationCoordinates;
       if (origin) setPickupCoords({ lat: origin.ltd, lng: origin.lng });
@@ -214,8 +271,11 @@ function UserHomeScreen() {
         destination: destinationLocation,
         vehicleType: selectedVehicle,
         rideMode,
+<<<<<<< HEAD
         paymentMethod,
         promoCode,
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       };
 
       if (rideMode === "scheduled") {
@@ -231,6 +291,7 @@ function UserHomeScreen() {
       const rideData = {
         pickup: pickupLocation,
         destination: destinationLocation,
+<<<<<<< HEAD
         pickupConfirmed,
         destinationConfirmed,
         vehicleType: selectedVehicle,
@@ -238,12 +299,20 @@ function UserHomeScreen() {
         routeInfo,
         currency,
         paymentMethod,
+=======
+        vehicleType: selectedVehicle,
+        fare,
+        currency,
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
         confirmedRideData: null,
         rideMode,
         scheduledFor: rideMode === "scheduled" ? scheduledFor : null,
         _id: response.data._id,
+<<<<<<< HEAD
         promoCode: response.data?.promoCode || promoCode,
         promoDiscount: response.data?.promoDiscount || 0,
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       };
       localStorage.setItem("rideDetails", JSON.stringify(rideData));
       setRideCreated(true);
@@ -255,7 +324,14 @@ function UserHomeScreen() {
         return;
       }
 
+<<<<<<< HEAD
       setMapNotice("Request sent. QuickRide will keep searching nearby online drivers and update you automatically.");
+=======
+      const timeoutMs = Number(import.meta.env.VITE_RIDE_TIMEOUT || 90000);
+      rideTimeout.current = setTimeout(() => {
+        cancelRide("NO_DRIVER_FOUND", "No driver accepted the ride in time");
+      }, timeoutMs);
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     } catch (error) {
       const validationMessage = error?.response?.data?.errors?.[0]?.msg;
       const message = validationMessage || error?.response?.data?.message || error?.message || "Unable to create ride. Please try again.";
@@ -274,7 +350,10 @@ function UserHomeScreen() {
   const resetRideUi = () => {
     updateLocation();
     setRouteCoords([]);
+<<<<<<< HEAD
     setRouteInfo({ distanceText: "", durationText: "" });
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     setPickupCoords(null);
     setDestinationCoords(null);
     setShowRideDetailsPanel(false);
@@ -313,14 +392,21 @@ function UserHomeScreen() {
     try {
       await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/ride/rate`,
+<<<<<<< HEAD
         { rideId, rating, review, tags: ratingTags },
+=======
+        { rideId, rating, review },
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
         { headers: { token } }
       );
       setShowRatingModal(false);
       setCompletedRide(null);
       setReview("");
       setRating(5);
+<<<<<<< HEAD
       setRatingTags([]);
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     } catch (e) {
       alert(e?.response?.data?.message || "Rating failed");
     }
@@ -368,21 +454,30 @@ function UserHomeScreen() {
   const setDefaults = () => {
     setPickupLocation("");
     setDestinationLocation("");
+<<<<<<< HEAD
     setPickupConfirmed(false);
     setDestinationConfirmed(false);
     setLocationSuggestion([]);
     setSuggestionLoading(false);
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     setSelectedVehicle("car");
     setFare({ car: 0, bike: 0 });
     setConfirmedRideData(null);
     setRideCreated(false);
     setRideMode("now");
     setScheduledFor("");
+<<<<<<< HEAD
     setPaymentMethod("cash");
     setPromoCode("");
   };
 
   const DEFAULT_MAP_CENTER = [6.5244, 3.3792];
+=======
+  };
+
+  const DEFAULT_MAP_CENTER = [43.6532, -79.3832];
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   const updateLocation = () => {
     if (!navigator.geolocation) {
@@ -411,6 +506,7 @@ function UserHomeScreen() {
     );
   };
 
+<<<<<<< HEAD
   const useCurrentLocationAsPickup = () => {
     if (!navigator.geolocation) {
       setMapNotice("Location is unavailable on this device.");
@@ -441,11 +537,14 @@ function UserHomeScreen() {
     }, () => { setLocationActionLoading(false); setMapNotice("Allow location permission to use your current pickup."); }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 15000 });
   };
 
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   useEffect(() => {
     updateLocation();
   }, []);
 
   useEffect(() => {
+<<<<<<< HEAD
     if (!token) return;
     Promise.allSettled([
       axios.get(`${import.meta.env.VITE_SERVER_URL}/user/saved-places`, { headers: { token } }),
@@ -495,6 +594,14 @@ function UserHomeScreen() {
     socket.on("connect", joinPassenger);
 
     const onRideConfirmed = (data) => {
+=======
+    if (!socket || !user?._id) return;
+
+    socket.emit("join", { userId: user._id, userType: "user" });
+
+    const onRideConfirmed = (data) => {
+      clearTimeout(rideTimeout.current);
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       setConfirmedRideData(data);
       localStorage.setItem(
         "rideDetails",
@@ -512,11 +619,15 @@ function UserHomeScreen() {
       }
     };
 
+<<<<<<< HEAD
     const updateRideStatus = (status, data = {}) => setConfirmedRideData((prev) => prev ? { ...prev, ...data, status } : prev);
     const onDriverArriving = (data) => updateRideStatus("arriving", data);
     const onDriverArrived = (data) => updateRideStatus("arrived", data);
     const onRideStarted = (data) => {
       updateRideStatus("ongoing", data);
+=======
+    const onRideStarted = () => {
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       if (destinationCoords) setMapCenter([destinationCoords.lat, destinationCoords.lng]);
     };
 
@@ -540,18 +651,25 @@ function UserHomeScreen() {
     };
 
     socket.on("ride-confirmed", onRideConfirmed);
+<<<<<<< HEAD
     socket.on("driver-arriving", onDriverArriving);
     socket.on("driver-arrived", onDriverArrived);
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     socket.on("ride-started", onRideStarted);
     socket.on("ride-ended", onRideEnded);
     socket.on("ride-cancelled", onRideCancelled);
     socket.on("captain-location-updated", onCaptainLocation);
 
     return () => {
+<<<<<<< HEAD
       socket.off("connect", joinPassenger);
       socket.off("ride-confirmed", onRideConfirmed);
       socket.off("driver-arriving", onDriverArriving);
       socket.off("driver-arrived", onDriverArrived);
+=======
+      socket.off("ride-confirmed", onRideConfirmed);
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       socket.off("ride-started", onRideStarted);
       socket.off("ride-ended", onRideEnded);
       socket.off("ride-cancelled", onRideCancelled);
@@ -567,6 +685,7 @@ function UserHomeScreen() {
       const ride = JSON.parse(storedRideDetails);
       setPickupLocation(ride.pickup || "");
       setDestinationLocation(ride.destination || "");
+<<<<<<< HEAD
       setPickupConfirmed(Boolean(ride.pickupConfirmed || ride.confirmedRideData));
       setDestinationConfirmed(Boolean(ride.destinationConfirmed || ride.confirmedRideData));
       setSelectedVehicle(ride.vehicleType || "car");
@@ -574,6 +693,11 @@ function UserHomeScreen() {
       setRouteInfo(ride.routeInfo || { distanceText: "", durationText: "" });
       setCurrency(ride.currency || "NGN");
       setPaymentMethod(ride.paymentMethod || "cash");
+=======
+      setSelectedVehicle(ride.vehicleType || "car");
+      setFare(ride.fare || { car: 0, bike: 0 });
+      setCurrency(ride.currency || "USD");
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       setConfirmedRideData(ride.confirmedRideData || null);
       setRideCreated(Boolean(ride._id && !ride.confirmedRideData));
     }
@@ -592,18 +716,27 @@ function UserHomeScreen() {
       ...current,
       pickup: pickupLocation,
       destination: destinationLocation,
+<<<<<<< HEAD
       pickupConfirmed,
       destinationConfirmed,
       vehicleType: selectedVehicle,
       fare,
       routeInfo,
       paymentMethod,
+=======
+      vehicleType: selectedVehicle,
+      fare,
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       confirmedRideData,
     };
     if (pickupLocation || destinationLocation || confirmedRideData || current?._id) {
       localStorage.setItem("rideDetails", JSON.stringify(rideData));
     }
+<<<<<<< HEAD
   }, [pickupLocation, destinationLocation, pickupConfirmed, destinationConfirmed, selectedVehicle, fare, routeInfo, paymentMethod, confirmedRideData]);
+=======
+  }, [pickupLocation, destinationLocation, selectedVehicle, fare, confirmedRideData]);
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   useEffect(() => {
     localStorage.setItem(
@@ -626,10 +759,17 @@ function UserHomeScreen() {
 
   const markers = [
     position?.coords
+<<<<<<< HEAD
       ? { key: "me", lat: position.coords.latitude, lng: position.coords.longitude, title: "You", color: "#2563eb" }
       : null,
     pickupCoords ? { key: "pickup", lat: pickupCoords.lat, lng: pickupCoords.lng, title: "Pickup", subtitle: pickupLocation, color: "#10b981" } : null,
     destinationCoords ? { key: "destination", lat: destinationCoords.lat, lng: destinationCoords.lng, title: "Destination", subtitle: destinationLocation, color: "#0f172a" } : null,
+=======
+      ? { key: "me", lat: position.coords.latitude, lng: position.coords.longitude, title: "You" }
+      : null,
+    pickupCoords ? { key: "pickup", lat: pickupCoords.lat, lng: pickupCoords.lng, title: "Pickup", subtitle: pickupLocation } : null,
+    destinationCoords ? { key: "destination", lat: destinationCoords.lat, lng: destinationCoords.lng, title: "Destination", subtitle: destinationLocation } : null,
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     confirmedRideData?.captain?.location?.coordinates
       ? {
           key: "captain",
@@ -637,11 +777,15 @@ function UserHomeScreen() {
           lng: confirmedRideData.captain.location.coordinates[0],
           title: "Driver",
           subtitle: `${confirmedRideData?.captain?.fullname?.firstname || ""} ${confirmedRideData?.captain?.fullname?.lastname || ""}`.trim(),
+<<<<<<< HEAD
           color: "#f59e0b",
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
         }
       : null,
   ].filter(Boolean);
 
+<<<<<<< HEAD
   const activeSearchValue = selectedInput === "pickup" ? pickupLocation : destinationLocation;
   const activeLocationConfirmed = selectedInput === "pickup" ? pickupConfirmed : destinationConfirmed;
   const isLocationSearching = activeSearchValue.trim().length >= 3 && !activeLocationConfirmed;
@@ -678,12 +822,34 @@ function UserHomeScreen() {
         </div>
         {mapNotice && (
           <div className="absolute bottom-3 left-6 right-6 z-[501] rounded-2xl border border-white/70 bg-white/95 px-3 py-2.5 text-[11px] font-semibold leading-4 text-slate-600 shadow-xl backdrop-blur">
+=======
+  return (
+    <div className="screen-safe">
+      <div className="mobile-bg" />
+      <Sidebar />
+
+      <div className="relative z-0 h-[43dvh] min-h-[280px] max-h-[410px] px-4 pb-0 pt-4">
+        <div className="mb-3 flex items-start justify-between gap-3 pr-14 text-white">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-100">QuickRide</p>
+            <h1 className="mt-1 text-[clamp(1.35rem,6vw,1.55rem)] font-black tracking-tight">Where to today?</h1>
+          </div>
+          <div className="hidden rounded-2xl bg-white/15 px-3 py-2 text-right backdrop-blur min-[360px]:block">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-100">Market</p>
+            <p className="text-sm font-black">CA / US</p>
+          </div>
+        </div>
+        <LiveMap height="calc(100% - 58px)" center={mapCenter} markers={markers} routeCoords={routeCoords} />
+        {mapNotice && (
+          <div className="absolute bottom-3 left-6 right-6 rounded-2xl border border-white/70 bg-white/95 px-3 py-2 text-[11px] font-semibold leading-4 text-slate-600 shadow-xl">
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
             {mapNotice}
           </div>
         )}
       </div>
 
       {showFindTripPanel && (
+<<<<<<< HEAD
         <div className="floating-sheet floating-sheet-nav z-30 flex min-h-[57dvh] flex-col gap-3 sheet-scroll sheet-scroll-nav sheet-enter">
           <div className="sheet-handle" />
 
@@ -864,6 +1030,66 @@ function UserHomeScreen() {
 
       {(confirmedRideData || rideCreated) && (
         <div className="fixed fab-stack-nav left-4 right-4 z-40 mx-auto grid max-w-xl grid-cols-2 gap-3 pointer-events-auto">
+=======
+        <div className="floating-sheet z-30 flex min-h-[48dvh] flex-col gap-4 sheet-scroll">
+          <div className="sheet-handle" />
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="mini-label">Book a ride</p>
+              <h2 className="text-[clamp(1.8rem,8vw,2rem)] font-black tracking-tight text-slate-950">Find a trip</h2>
+            </div>
+            <span className="pill">OpenStreetMap</span>
+          </div>
+
+          <div className="soft-card p-3 shadow-none">
+            <div className="relative flex items-center">
+              <div className="absolute bottom-5 left-5 top-5 flex w-1 flex-col items-center justify-between rounded-full bg-slate-950">
+                <div className="-mt-1 h-3 w-3 rounded-full border-[3px] border-slate-950 bg-white" />
+                <div className="-mb-1 h-3 w-3 rounded-sm border-[3px] border-slate-950 bg-white" />
+              </div>
+              <div className="min-w-0 w-full space-y-2 pl-9">
+                <input id="pickup" placeholder="Pickup in Canada or United States" className="input-box" value={pickupLocation} onChange={onChangeHandler} autoComplete="off" />
+                <input id="destination" placeholder="Drop-off location" className="input-box" value={destinationLocation} onChange={onChangeHandler} autoComplete="off" />
+              </div>
+            </div>
+          </div>
+
+
+          <div className="grid grid-cols-2 gap-3">
+            <button type="button" className={`rounded-2xl border px-4 py-3 text-sm font-black ${rideMode === "now" ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"}`} onClick={() => setRideMode("now")}>Ride now</button>
+            <button type="button" className={`rounded-2xl border px-4 py-3 text-sm font-black ${rideMode === "scheduled" ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"}`} onClick={() => setRideMode("scheduled")}>Schedule later</button>
+          </div>
+
+          {rideMode === "scheduled" && (
+            <div className="soft-card p-3 shadow-none">
+              <label className="mini-label">Pickup date & time</label>
+              <input type="datetime-local" className="input-box mt-2" value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} />
+              <p className="mt-2 text-xs font-semibold text-slate-500">Scheduled rides are saved for admin monitoring and can be dispatched closer to pickup time.</p>
+            </div>
+          )}
+          <Button
+            title="Search rides"
+            loading={loading}
+            loadingMessage="Finding route"
+            disabled={pickupLocation.length <= 2 || destinationLocation.length <= 2 || (rideMode === "scheduled" && !scheduledFor)}
+            fun={() => getDistanceAndFare(pickupLocation, destinationLocation)}
+          />
+
+          {locationSuggestion.length > 0 && (
+            <div className="min-h-0 overflow-hidden">
+              <LocationSuggestions suggestions={locationSuggestion} setSuggestions={setLocationSuggestion} setPickupLocation={setPickupLocation} setDestinationLocation={setDestinationLocation} input={selectedInput} />
+            </div>
+          )}
+        </div>
+      )}
+
+      <SelectVehicle selectedVehicle={setSelectedVehicle} showPanel={showSelectVehiclePanel} setShowPanel={setShowSelectVehiclePanel} showPreviousPanel={setShowFindTripPanel} showNextPanel={setShowRideDetailsPanel} fare={fare} currency={currency} />
+
+      <RideDetails pickupLocation={pickupLocation} destinationLocation={destinationLocation} selectedVehicle={selectedVehicle} fare={fare} currency={currency} showPanel={showRideDetailsPanel} setShowPanel={setShowRideDetailsPanel} showPreviousPanel={setShowSelectVehiclePanel} createRide={createRide} cancelRide={cancelRide} loading={loading} rideCreated={rideCreated} confirmedRideData={confirmedRideData} />
+
+      {(confirmedRideData || rideCreated) && (
+        <div className="fixed bottom-5 left-4 right-4 z-40 mx-auto grid max-w-xl grid-cols-2 gap-3 pointer-events-auto">
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
           <button type="button" className="rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white shadow-xl" onClick={() => setShowEmergencyModal(true)}>Emergency / SOS</button>
           <button type="button" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-950 shadow-xl" onClick={() => setShowComplaintModal(true)}>File complaint</button>
         </div>
@@ -877,11 +1103,16 @@ function UserHomeScreen() {
             <p className="mt-1 text-sm font-semibold text-slate-500">Your feedback helps management monitor service quality.</p>
             <div className="mt-4 grid grid-cols-5 gap-1.5 min-[360px]:gap-2">
               {[1, 2, 3, 4, 5].map((value) => (
+<<<<<<< HEAD
                 <button key={value} className={`rounded-2xl border py-3 text-base font-black min-[360px]:text-lg ${rating === value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"}`} onClick={() => { setRating(value); setRatingTags([]); }}>
+=======
+                <button key={value} className={`rounded-2xl border py-3 text-base font-black min-[360px]:text-lg ${rating === value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"}`} onClick={() => setRating(value)}>
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                   {value}★
                 </button>
               ))}
             </div>
+<<<<<<< HEAD
             <div className="mt-4 flex flex-wrap gap-2">
               {(rating >= 4
                 ? ["Safe driving", "Professional", "Clean vehicle", "Friendly", "Smooth pickup"]
@@ -891,6 +1122,8 @@ function UserHomeScreen() {
                 return <button key={tag} type="button" onClick={() => setRatingTags((items) => selected ? items.filter((item) => item !== tag) : [...items, tag].slice(0, 6))} className={`rounded-full border px-3 py-2 text-xs font-black transition ${selected ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-slate-50 text-slate-600"}`}>{tag}</button>;
               })}
             </div>
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
             <textarea className="input-box mt-4 min-h-28 resize-none" placeholder="Leave a comment (optional)" value={review} onChange={(e) => setReview(e.target.value)} />
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button className="secondary-btn w-full" onClick={() => setShowRatingModal(false)}>Later</button>
@@ -945,7 +1178,10 @@ function UserHomeScreen() {
         </div>
       )}
 
+<<<<<<< HEAD
       <MobileBottomNav userType="user" />
+=======
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     </div>
   );
 }

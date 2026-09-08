@@ -154,12 +154,16 @@ function CaptainSignup() {
         <div>
           <button onClick={() => step > 1 ? setStep(step - 1) : navigation(-1)} className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur"><ArrowLeft /></button>
           <div className="glass-card p-4 min-[380px]:p-5">
+<<<<<<< HEAD
             <div className="flow-steps mb-5">
               <div className={`flow-step ${step === 1 ? "flow-step-active" : "flow-step-done"}`}>1 Profile</div>
               <div className={`flow-step ${step === 2 ? "flow-step-active" : step > 2 ? "flow-step-done" : ""}`}>2 Vehicle</div>
               <div className={`flow-step ${step === 3 ? "flow-step-active" : ""}`}>3 Verify</div>
             </div>
             <Heading title={step === 1 ? "Create driver account" : step === 2 ? "Vehicle details" : "Verification documents"} eyebrow="Drive with QuickRide" />
+=======
+            <Heading title={step === 1 ? "Create driver account" : step === 2 ? "Vehicle details" : "Verification documents"} eyebrow={`Captain signup • Step ${step} of 3`} />
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
             <form onSubmit={handleSubmit(signupCaptain)}>
               {step === 1 && (
                 <>
@@ -167,7 +171,11 @@ function CaptainSignup() {
                     <Input label="First name" name="firstname" register={register} error={errors.firstname} />
                     <Input label="Last name" name="lastname" register={register} error={errors.lastname} />
                   </div>
+<<<<<<< HEAD
                   <Input label="Phone number" type="tel" name="phone" placeholder="+234 801 234 5678" register={register} error={errors.phone} />
+=======
+                  <Input label="Phone number" type="tel" name="phone" register={register} error={errors.phone} />
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                   <Input label="Email" type="email" name="email" register={register} error={errors.email} />
                   <Input label="Password" type="password" name="password" register={register} error={errors.password} />
                   {responseError && <p className="mb-4 rounded-2xl bg-red-50 p-3 text-center text-sm font-semibold text-red-600">{responseError}</p>}
@@ -183,7 +191,11 @@ function CaptainSignup() {
                   </div>
                   <Input label="Plate number" name="number" register={register} error={errors.number} />
                   <Input label="Vehicle type" type="select" options={["Car", "Bike"]} name="type" register={register} error={errors.type} />
+<<<<<<< HEAD
                   <p className="mb-3 rounded-2xl bg-slate-100 px-4 py-3 text-xs font-bold text-slate-600">Vehicle availability can be configured by Nigerian city and operating area.</p>
+=======
+                  <p className="mb-3 rounded-2xl bg-slate-100 px-4 py-3 text-xs font-bold text-slate-600">Auto/rickshaw is disabled because this build is configured for Canada and the United States.</p>
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                   <div className="responsive-grid-2">
                     <FileInput label="Profile photo" onChange={(file) => handleFile("profilePhoto", file)} />
                     <FileInput label="Vehicle photo" onChange={(file) => handleFile("vehiclePhoto", file)} />

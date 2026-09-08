@@ -49,7 +49,11 @@ function UserEditProfile() {
             <Input label="First name" name="firstname" register={register} error={errors.firstname} defaultValue={user.fullname.firstname} />
             <Input label="Last name" name="lastname" register={register} error={errors.lastname} defaultValue={user.fullname.lastname} />
           </div>
+<<<<<<< HEAD
           <Input label="Phone Number" type="tel" name="phone" register={register} error={errors.phone} defaultValue={user.phone} />
+=======
+          <Input label="Phone Number" type="number" name="phone" register={register} error={errors.phone} defaultValue={user.phone} />
+>>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
           {responseError && <p className="mb-4 rounded-2xl bg-red-50 p-3 text-center text-sm font-bold text-red-600">{responseError}</p>}
           <Button title="Update Profile" loading={loading} type="submit" classes="mt-4" />
         </form>
