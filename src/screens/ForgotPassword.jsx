@@ -79,11 +79,7 @@ function ForgotPassword() {
                 <p className="text-sm mt-3 text-zinc-600 text-balance">
                     Enter your registered email below to receive password reset link
                 </p>
-<<<<<<< HEAD
                 <img src={mailImg} alt="Password reset email" className="h-36 mx-auto my-8" />
-=======
-                <img src={mailImg} alt="Verify Email" className="h-36 mx-auto my-8" />
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
                 <form onSubmit={handleSubmit(forgotPassword)}>
                     <Input

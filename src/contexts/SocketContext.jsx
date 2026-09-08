@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { createContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import Console from "../utils/console";
@@ -38,30 +37,6 @@ function SocketContext({ children }) {
 
   return (
     <SocketDataContext.Provider value={{ socket, isConnected }}>
-=======
-import { createContext, useEffect } from "react";
-import { io } from "socket.io-client";
-
-export const SocketDataContext = createContext();
-
-const socket = io(`${import.meta.env.VITE_SERVER_URL}`);
-
-import Console from "../utils/console";
-
-function SocketContext({ children }) {
-  useEffect(() => {
-    socket.on("connect", () => {
-      Console.log("Connected to server");
-    });
-
-    socket.on("disconnect", () => {
-      Console.log("Disconnected from server");
-    });
-  }, []);
-
-  return (
-    <SocketDataContext.Provider value={{ socket }}>
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       {children}
     </SocketDataContext.Provider>
   );

@@ -19,10 +19,6 @@ import CaptainEditProfile from "./CaptainEditProfile";
 
 import Error from "./Error";
 import ChatScreen from "./ChatScreen";
-<<<<<<< HEAD
-=======
-import VerifyEmail from "./VerifyEmail";
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 import ResetPassword from "./ResetPassword";
 import ForgotPassword from "./ForgotPassword";
 import AdminHome from "./AdminHome";
@@ -43,19 +39,12 @@ export {
   CaptainEditProfile,
   Error,
   ChatScreen,
-<<<<<<< HEAD
-=======
-  VerifyEmail,
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   ResetPassword,
   ForgotPassword,
   AdminLogin,
   AdminHome
 };
-<<<<<<< HEAD
 
 export { default as UserTools } from "./UserTools";
 
 export { default as SharedTrip } from "./SharedTrip";
-=======
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7

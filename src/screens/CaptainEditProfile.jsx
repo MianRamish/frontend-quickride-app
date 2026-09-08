@@ -39,20 +39,12 @@ function CaptainEditProfile() {
     <div className="screen-safe safe-scroll bg-slate-50 p-4">
       <div className="mb-6 flex items-center gap-3">
         <button className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm" onClick={() => navigation(-1)}><ArrowLeft /></button>
-<<<<<<< HEAD
         <Heading title="Edit Profile" eyebrow="Driver" />
-=======
-        <Heading title="Edit Profile" eyebrow="Captain" />
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       </div>
       <div className="soft-card p-4">
         <Input label="Email" type="email" name="email" register={register} error={errors.email} defaultValue={captain.email} disabled={true} />
         <form onSubmit={handleSubmit(updateUserProfile)}>
-<<<<<<< HEAD
           <Input label="Phone Number" type="tel" name="phone" register={register} error={errors.phone} defaultValue={captain.phone} />
-=======
-          <Input label="Phone Number" type="number" name="phone" register={register} error={errors.phone} defaultValue={captain.phone} />
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
           <div className="responsive-grid-2">
             <Input label="First name" name="firstname" register={register} error={errors.firstname} defaultValue={captain.fullname.firstname} />
             <Input label="Last name" name="lastname" register={register} error={errors.lastname} defaultValue={captain.fullname.lastname} />

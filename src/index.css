@@ -12,11 +12,8 @@
   --qr-brand: #111827;
   --qr-brand-2: #2563eb;
   --qr-brand-3: #14b8a6;
-<<<<<<< HEAD
   --qr-bottom-nav-height: 78px;
   --qr-bottom-nav-offset: calc(var(--qr-bottom-nav-height) + env(safe-area-inset-bottom) + 10px);
-=======
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 }
 
 * {
@@ -38,27 +35,18 @@ input, textarea, select { min-width: 0; }
   .app-frame { @apply min-h-dvh w-full bg-[radial-gradient(circle_at_top_left,#bfdbfe,transparent_34%),linear-gradient(135deg,#0f172a,#1e293b)]; }
   .app-shell { @apply relative min-h-dvh w-full overflow-hidden bg-slate-50 text-slate-950; }
   .mobile-bg { @apply absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(37,99,235,0.42),transparent_30%),radial-gradient(circle_at_90%_8%,rgba(20,184,166,0.26),transparent_26%),linear-gradient(180deg,#0f172a_0%,#111827_34%,#f8fafc_34%,#f8fafc_100%)]; }
-<<<<<<< HEAD
   .screen-safe { @apply relative h-dvh w-full overflow-hidden bg-slate-50; padding-top: env(safe-area-inset-top); }
   .screen-with-nav { padding-bottom: var(--qr-bottom-nav-offset); }
-=======
-  .screen-safe { @apply relative h-dvh w-full overflow-hidden bg-slate-50; }
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   .safe-scroll { @apply overflow-y-auto overscroll-contain; padding-bottom: calc(env(safe-area-inset-bottom) + 20px); }
   .page-pad { @apply px-4 sm:px-5; }
   .glass-card { @apply rounded-[28px] border border-white/60 bg-white/95 shadow-[0_18px_55px_rgba(15,23,42,0.14)] backdrop-blur; }
   .soft-card { @apply rounded-[24px] border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.07)]; }
   .section-sheet { @apply rounded-t-[32px] border border-white/80 bg-slate-50 shadow-[0_-20px_55px_rgba(15,23,42,0.18)]; }
-<<<<<<< HEAD
   .floating-sheet { @apply absolute inset-x-0 bottom-0 z-30 rounded-t-[32px] border border-white/80 bg-slate-50 shadow-[0_-20px_55px_rgba(15,23,42,0.18)] transition-transform duration-500; max-height: min(76dvh, 760px); }
   .floating-sheet-nav { bottom: calc(var(--qr-bottom-nav-height) - 6px + env(safe-area-inset-bottom)); max-height: min(calc(76dvh - 8px), 760px); }
   .sheet-scroll { @apply overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom)+22px)] pt-4 sm:px-5; }
   .sheet-scroll-nav { padding-bottom: calc(var(--qr-bottom-nav-height) + env(safe-area-inset-bottom) + 28px); }
   .fab-stack-nav { bottom: calc(var(--qr-bottom-nav-height) + env(safe-area-inset-bottom) + 16px); }
-=======
-  .floating-sheet { @apply absolute inset-x-0 bottom-0 z-30 rounded-t-[32px] border border-white/80 bg-slate-50 shadow-[0_-20px_55px_rgba(15,23,42,0.18)] transition-transform duration-500; max-height: min(72dvh, 720px); }
-  .sheet-scroll { @apply overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom)+22px)] pt-4 sm:px-5; }
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   .sheet-handle { @apply mx-auto h-1.5 w-14 shrink-0 rounded-full bg-slate-300; }
   .pill { @apply inline-flex shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-bold text-slate-600; }
   .status-pill { @apply inline-flex rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-xs font-black text-white backdrop-blur; }
@@ -68,18 +56,12 @@ input, textarea, select { min-width: 0; }
   .input-box { @apply w-full rounded-2xl border border-slate-200 bg-slate-100/80 px-4 py-4 text-[16px] font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:bg-white; }
   .mini-label { @apply text-[10px] font-black uppercase tracking-[0.16em] text-slate-400; }
   .metric-card { @apply rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)]; }
-<<<<<<< HEAD
   .payment-option { @apply min-h-[126px] rounded-[22px] border border-slate-200 bg-white p-3 transition active:scale-[0.98]; }
   .payment-option-active { @apply border-slate-950 ring-1 ring-slate-950; }
   .payment-option-disabled { @apply cursor-not-allowed bg-slate-50 opacity-70 active:scale-100; }
   .modal-backdrop { @apply fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/55 backdrop-blur-sm; }
   .modal-sheet { @apply max-h-[88dvh] w-full overflow-y-auto rounded-t-[32px] border border-white/80 bg-slate-50 p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-20px_55px_rgba(15,23,42,0.18)]; }
   .auth-screen { @apply relative flex h-dvh w-full flex-col overflow-hidden bg-slate-50; padding-top: env(safe-area-inset-top); }
-=======
-  .modal-backdrop { @apply fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/55 backdrop-blur-sm; }
-  .modal-sheet { @apply max-h-[88dvh] w-full overflow-y-auto rounded-t-[32px] border border-white/80 bg-slate-50 p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-20px_55px_rgba(15,23,42,0.18)]; }
-  .auth-screen { @apply relative flex h-dvh w-full flex-col overflow-hidden bg-slate-50; }
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   .auth-content { @apply relative z-10 flex h-dvh flex-col justify-between overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-6 sm:px-5; }
   .responsive-grid-2 { @apply grid grid-cols-1 gap-3 min-[380px]:grid-cols-2; }
   .truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -121,7 +103,6 @@ input, textarea, select { min-width: 0; }
 
 @media (min-width: 1024px) {
   .floating-sheet { left: auto; right: 24px; bottom: 24px; width: min(460px, calc(100vw - 48px)); border-radius: 32px; }
-<<<<<<< HEAD
   .floating-sheet-nav { bottom: 24px; }
   .modal-backdrop { align-items: center; padding: 24px; }
   .modal-sheet { max-width: 560px; border-radius: 32px; }
@@ -242,8 +223,3 @@ input, textarea, select { min-width: 0; }
 @media (max-width: 420px) {
   .modal-sheet .quickride-map { border-radius: 22px; }
 }
-=======
-  .modal-backdrop { align-items: center; padding: 24px; }
-  .modal-sheet { max-width: 560px; border-radius: 32px; }
-}
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7

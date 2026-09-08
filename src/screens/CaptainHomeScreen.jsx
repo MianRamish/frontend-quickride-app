@@ -1,18 +1,9 @@
-<<<<<<< HEAD
 import { useContext, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useCaptain } from "../contexts/CaptainContext";
 import { BarChart3, BellRing, CarFront, Check, Crosshair, FileCheck2, FileText, Gauge, LoaderCircle, LocateFixed, MapPin, Navigation, Phone, Power, RefreshCcw, Search, ShieldAlert, Sparkles, UploadCloud, X } from "lucide-react";
 import { SocketDataContext } from "../contexts/SocketContext";
 import { NewRide, Sidebar, NetworkStatusBanner, NotificationBell, MobileBottomNav } from "../components";
-=======
-import { useContext, useEffect, useState } from "react";
-import axios from "axios";
-import { useCaptain } from "../contexts/CaptainContext";
-import { BarChart3, BellRing, CarFront, FileCheck2, FileText, Gauge, Phone, Power, RefreshCcw, ShieldAlert, UploadCloud } from "lucide-react";
-import { SocketDataContext } from "../contexts/SocketContext";
-import { NewRide, Sidebar } from "../components";
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 import LiveMap from "../components/LiveMap";
 import Console from "../utils/console";
 import { useAlert } from "../hooks/useAlert";
@@ -107,14 +98,9 @@ const requestWithdrawal = async (event) => {
 };
 
   const { captain, setCaptain } = useCaptain();
-<<<<<<< HEAD
   const { socket, isConnected: socketConnected } = useContext(SocketDataContext);
   const [loading, setLoading] = useState(false);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
-=======
-  const { socket } = useContext(SocketDataContext);
-  const [loading, setLoading] = useState(false);
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const [earningsSummary, setEarningsSummary] = useState(null);
   const [withdrawals, setWithdrawals] = useState([]);
   const [withdrawalForm, setWithdrawalForm] = useState({ amount: "", method: "bank", bankName: "", accountHolder: "", accountNumber: "", routingNumber: "", payoutEmail: "" });
@@ -139,11 +125,7 @@ const requestWithdrawal = async (event) => {
     ltd: null,
     lng: null,
   });
-<<<<<<< HEAD
   const [mapCenter, setMapCenter] = useState([6.5244, 3.3792]);
-=======
-  const [mapCenter, setMapCenter] = useState([43.6532, -79.3832]);
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const [earnings, setEarnings] = useState({
     total: 0,
     today: 0,
@@ -163,7 +145,6 @@ const requestWithdrawal = async (event) => {
     JSON.parse(localStorage.getItem("messages")) || []
   );
   const [error, setError] = useState("");
-<<<<<<< HEAD
   const [lastLocationAt, setLastLocationAt] = useState(captain?.lastLocationAt || null);
   const [trackingState, setTrackingState] = useState("idle");
   const [geoPermission, setGeoPermission] = useState("unknown");
@@ -195,8 +176,6 @@ const requestWithdrawal = async (event) => {
   const [passengerReview, setPassengerReview] = useState("");
   const [passengerRatingTags, setPassengerRatingTags] = useState([]);
   const [completedRideForRating, setCompletedRideForRating] = useState(null);
-=======
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   // Panels
   const [showCaptainDetailsPanel, setShowCaptainDetailsPanel] = useState(true);
@@ -215,7 +194,6 @@ const requestWithdrawal = async (event) => {
         setCaptain(freshCaptain);
         localStorage.setItem("userData", JSON.stringify({ type: "captain", data: freshCaptain }));
         setIsOnline(Boolean(freshCaptain.isOnline));
-<<<<<<< HEAD
         setLocationSource(freshCaptain.lastLocationSource === "manual" ? "manual" : "gps");
         setManualLocationLabel(freshCaptain.manualLocationLabel || "");
         const freshCoords = freshCaptain?.location?.coordinates || [];
@@ -234,8 +212,6 @@ const requestWithdrawal = async (event) => {
           }
         }
         setLastLocationAt(freshCaptain.lastLocationAt || null);
-=======
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
         setDocForm({
           licenseNumber: freshCaptain?.documents?.licenseNumber || "",
           licenseExpiry: freshCaptain?.documents?.licenseExpiry ? String(freshCaptain.documents.licenseExpiry).slice(0, 10) : "",
@@ -346,12 +322,8 @@ const requestWithdrawal = async (event) => {
           }
         );
         setLoading(false);
-<<<<<<< HEAD
         setNewRide(response.data || newRide);
         setShowBtn("arriving");
-=======
-        setShowBtn("otp");
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
         if (riderLocation.ltd && riderLocation.lng) setMapCenter([riderLocation.ltd, riderLocation.lng]);
         Console.log(response);
       }
@@ -365,7 +337,6 @@ const requestWithdrawal = async (event) => {
     }
   };
 
-<<<<<<< HEAD
   const markArriving = async () => {
     try {
       setLoading(true);
@@ -409,8 +380,6 @@ const requestWithdrawal = async (event) => {
     } finally { setLoading(false); }
   };
 
-=======
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const rejectRide = async (rideOverride = null) => {
     const rideToReject = rideOverride || newRide;
     if (!rideToReject?._id) return;
@@ -427,7 +396,6 @@ const requestWithdrawal = async (event) => {
     }
   };
 
-<<<<<<< HEAD
   const openLocationSetupPanel = () => {
     const current = lastGpsRef.current;
     if (current && Number.isFinite(Number(current.ltd)) && Number.isFinite(Number(current.lng))) {
@@ -636,21 +604,6 @@ const requestWithdrawal = async (event) => {
       );
     } finally {
       setAvailabilityLoading(false);
-=======
-  const toggleAvailability = async () => {
-    try {
-      setLoading(true);
-      const next = !isOnline;
-      const response = await axios.patch(`${import.meta.env.VITE_SERVER_URL}/captain/availability`, { online: next }, { headers: { token } });
-      setIsOnline(Boolean(response.data?.captain?.isOnline));
-      showAlert("Status updated", response.data?.message || (next ? "You are online" : "You are offline"), "success");
-      await fetchIncomingRides();
-    } catch (error) {
-      setIsOnline(false);
-      showAlert("Cannot go online", error?.response?.data?.message || "Admin approval is required.", "failure");
-    } finally {
-      setLoading(false);
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     }
   };
 
@@ -687,7 +640,6 @@ const requestWithdrawal = async (event) => {
     }
   };
 
-<<<<<<< HEAD
   const endRide = async (cashCollected = false) => {
     try {
       if (newRide._id != "") {
@@ -696,50 +648,26 @@ const requestWithdrawal = async (event) => {
           `${import.meta.env.VITE_SERVER_URL}/ride/end-ride`,
           { rideId: newRide._id, cashCollected },
           { headers: { token } }
-=======
-  const endRide = async () => {
-    try {
-      if (newRide._id != "") {
-        setLoading(true);
-        await axios.post(
-          `${import.meta.env.VITE_SERVER_URL}/ride/end-ride`,
-          {
-            rideId: newRide._id,
-          },
-          {
-            headers: {
-              token: token,
-            },
-          }
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
         );
         if (riderLocation.ltd && riderLocation.lng) setMapCenter([riderLocation.ltd, riderLocation.lng]);
         setShowBtn("accept");
         setLoading(false);
         setShowCaptainDetailsPanel(true);
         setShowNewRidePanel(false);
-<<<<<<< HEAD
         setCompletedRideForRating(completedResponse.data || newRide);
         setShowPassengerRating(true);
         setNewRide(defaultRideData);
         fetchCaptainExtras();
-=======
-        setNewRide(defaultRideData);
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
         localStorage.removeItem("rideDetails");
         localStorage.removeItem("showPanel");
       }
     } catch (err) {
       setLoading(false);
-<<<<<<< HEAD
       setError(err?.response?.data?.message || "Unable to complete the trip.");
-=======
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       Console.log(err);
     }
   };
 
-<<<<<<< HEAD
   const submitPassengerRating = async () => {
     if (!completedRideForRating?._id) return;
     try {
@@ -989,41 +917,6 @@ const requestWithdrawal = async (event) => {
   useEffect(() => () => {
     if (manualSearchTimerRef.current) window.clearTimeout(manualSearchTimerRef.current);
   }, []);
-=======
-  const updateLocation = () => {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setRiderLocation({
-          ltd: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-
-        setMapCenter([position.coords.latitude, position.coords.longitude]);
-
-        if (socket && captain?._id) {
-          socket.emit("update-location-captain", {
-            userId: captain._id,
-            location: {
-              ltd: position.coords.latitude,
-              lng: position.coords.longitude,
-            },
-          });
-        }
-      },
-      () => {
-        // Browser location may fail if permission is denied, GPS is unavailable,
-        // or the app is not served from HTTPS/localhost. Keep the app usable.
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 8000,
-        maximumAge: 60000,
-      }
-    );
-  };
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   const clearRideData = () => {
     setShowBtn("accept");
@@ -1036,7 +929,6 @@ const requestWithdrawal = async (event) => {
   }
 
   useEffect(() => {
-<<<<<<< HEAD
     const activeTrip = ["accepted", "arriving", "arrived", "ongoing"].includes(newRide?.status);
     if (locationSource !== "gps" || (!isOnline && !activeTrip) || !captain?._id || !gpsSessionActive || !navigator.geolocation || !isSecureLocationContext() || !geolocationPolicyAllows()) return undefined;
 
@@ -1130,31 +1022,12 @@ const requestWithdrawal = async (event) => {
     };
 
     const handleNewRide = (data) => {
-=======
-    if (captain._id) {
-      socket.emit("join", {
-        userId: captain._id,
-        userType: "captain",
-      });
-
-      // const locationInterval = setInterval(updateLocation, 10000);
-      updateLocation(); // IMP: Call this function to update location
-      refreshCaptainProfile();
-      fetchCaptainExtras();
-      fetchWithdrawals();
-      fetchIncomingRides();
-      setIsOnline(Boolean(captain?.isOnline));
-    }
-
-    socket.on("new-ride", (data) => {
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       Console.log("New Ride available:", data);
       setShowBtn("accept");
       setNewRide(data);
       setIncomingRides((prev) => [data, ...prev.filter((ride) => ride._id !== data._id)]);
       setShowNewRidePanel(true);
       setActiveTab("requests");
-<<<<<<< HEAD
     };
 
     const handleRideCancelled = (data) => { Console.log("Ride cancelled", data); updateLocation(); clearRideData(); };
@@ -1188,16 +1061,6 @@ const requestWithdrawal = async (event) => {
       socket.off("ride-offer-expired", handleOfferExpired);
     };
   }, [captain?._id, isOnline, token, locationSource]);
-=======
-    });
-
-    socket.on("ride-cancelled", (data) => {
-      Console.log("Ride cancelled", data);
-      updateLocation();
-      clearRideData();
-    });
-  }, [captain?._id]);
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   useEffect(() => {
     localStorage.setItem("messages", JSON.stringify(messages));
@@ -1269,11 +1132,7 @@ const requestWithdrawal = async (event) => {
     setRides({
       accepted: acceptedRides,
       cancelled: cancelledRides,
-<<<<<<< HEAD
       distanceTravelled: Math.round(distanceTravelled / 1000),
-=======
-      distanceTravelled: Math.round(distanceTravelled / 1609.344),
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     });
   };
 
@@ -1302,7 +1161,6 @@ const requestWithdrawal = async (event) => {
 
   const captainMarkers = [
     riderLocation.ltd && riderLocation.lng
-<<<<<<< HEAD
       ? { key: "driver", lat: riderLocation.ltd, lng: riderLocation.lng, title: locationSource === "manual" ? "Pinned driver location" : "Live driver location", color: locationSource === "manual" ? "#2563eb" : "#10b981" }
       : null,
   ].filter(Boolean);
@@ -1347,11 +1205,6 @@ const requestWithdrawal = async (event) => {
       : readyForRequests
         ? (locationSource === "manual" ? `${manualLocationLabel || "Pinned location"} • confirm again if you move.` : "Live GPS is active and nearby requests can reach you.")
         : "GPS is not available here. Pin your current area or retry device GPS.";
-=======
-      ? { key: "driver", lat: riderLocation.ltd, lng: riderLocation.lng, title: "Your location" }
-      : null,
-  ].filter(Boolean);
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   function Metric({ label, value }) {
     return (
@@ -1363,17 +1216,12 @@ const requestWithdrawal = async (event) => {
   }
 
   return (
-<<<<<<< HEAD
     <div className="screen-safe screen-with-nav">
       <NetworkStatusBanner />
-=======
-    <div className="screen-safe">
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       <div className="mobile-bg" />
       <Alert heading={alert.heading} text={alert.text} isVisible={alert.isVisible} onClose={hideAlert} type={alert.type} />
       <Sidebar />
 
-<<<<<<< HEAD
       <div className="relative z-0 h-[44dvh] min-h-[300px] max-h-[430px] px-4 pb-0 pt-4">
         <div className="app-topbar mb-3 pr-[60px]">
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -1480,39 +1328,10 @@ const requestWithdrawal = async (event) => {
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100"><ShieldAlert size={19} /></div>
                 <div><h3 className="font-black">Verification required</h3><p className="mt-1 text-xs font-semibold leading-5">Keep your driver and vehicle documents valid. Admin approval is required before you can receive trips.</p></div>
-=======
-      <div className="relative z-0 h-[43dvh] min-h-[280px] max-h-[410px] px-4 pb-0 pt-4">
-        <div className="mb-3 flex items-start justify-between gap-3 pr-14 text-white">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-100">Captain mode</p>
-            <h1 className="mt-1 text-[clamp(1.35rem,6vw,1.55rem)] font-black tracking-tight">Ready for trips</h1>
-          </div>
-          <div className="hidden rounded-2xl bg-emerald-400/20 px-3 py-2 text-right backdrop-blur min-[360px]:block">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Status</p>
-            <p className="text-sm font-black">{isOnline ? "Online" : "Offline"}</p>
-          </div>
-        </div>
-        <LiveMap height="calc(100% - 58px)" center={mapCenter} markers={captainMarkers} />
-      </div>
-
-      {showCaptainDetailsPanel && (
-        <div className="floating-sheet z-30 sheet-scroll">
-          <div className="sheet-handle mb-4" />
-
-          {(!captain?.isApproved || captain?.verificationStatus !== "approved") && (
-            <div className="mb-4 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-              <div className="flex items-start gap-3">
-                <ShieldAlert className="mt-0.5 shrink-0" size={20} />
-                <div>
-                  <h3 className="font-black">Pending admin verification</h3>
-                  <p className="mt-1 text-sm font-semibold leading-5">Upload valid driver and vehicle documents, then wait for admin approval before accepting rides. Use the document update section below whenever documents expire or need replacement.</p>
-                </div>
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
               </div>
             </div>
           )}
 
-<<<<<<< HEAD
           <div className="mb-4 overflow-hidden rounded-[28px] bg-[#07111f] p-4 text-white shadow-[0_18px_42px_rgba(2,8,23,.16)]">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
@@ -1534,60 +1353,14 @@ const requestWithdrawal = async (event) => {
           </div>
 
           <div className="sticky top-0 z-10 -mx-1 mb-4 overflow-x-auto rounded-[22px] border border-slate-200 bg-white/95 p-1 shadow-sm backdrop-blur-xl">
-=======
-          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <button className={`rounded-2xl px-4 py-3 text-sm font-black text-white ${isOnline ? "bg-emerald-600" : "bg-slate-950"}`} onClick={toggleAvailability} disabled={loading}>
-              <span className="inline-flex items-center gap-2"><Power size={16} /> {isOnline ? "Go offline" : "Go online"}</span>
-            </button>
-            <button className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-950" onClick={() => { setActiveTab("requests"); fetchIncomingRides(); }} disabled={loading}>
-              <span className="inline-flex items-center gap-2"><RefreshCcw size={16} /> Refresh rides</span>
-            </button>
-            <button className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-950" onClick={refreshCaptainProfile} disabled={loading}>
-              <span className="inline-flex items-center gap-2"><RefreshCcw size={16} /> Refresh profile</span>
-            </button>
-            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-700">
-              {incomingRides.length} incoming request{incomingRides.length === 1 ? "" : "s"}
-            </div>
-          </div>
-
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-slate-950 text-lg font-black text-white">
-                {captain?.fullname?.firstname?.[0]}{captain?.fullname?.lastname?.[0]}
-              </div>
-              <div className="min-w-0">
-                <p className="mini-label">Driver</p>
-                <h2 className="truncate text-xl font-black leading-6 text-slate-950">{captain?.fullname?.firstname} {captain?.fullname?.lastname}</h2>
-                <p className="mt-1 flex items-center gap-1 truncate text-xs font-semibold text-slate-500"><Phone size={12} /> {captain?.phone}</p>
-              </div>
-            </div>
-            <div className="shrink-0 text-right">
-              <p className="mini-label">Today</p>
-              <h3 className="text-lg font-black text-slate-950">{formatMoney(earnings.today, earningsSummary?.currency || "USD")}</h3>
-            </div>
-          </div>
-
-          <div className="sticky top-0 z-10 -mx-1 mb-4 overflow-x-auto rounded-3xl border border-slate-200 bg-white/95 p-1 shadow-sm backdrop-blur">
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
             <div className="flex min-w-max gap-1">
               {DRIVER_TABS.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.key;
                 return (
-<<<<<<< HEAD
                   <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)} className={`relative flex min-h-11 items-center gap-1.5 rounded-[17px] px-3.5 py-2.5 text-xs font-black transition ${isActive ? "bg-slate-950 text-white shadow-sm" : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"}`}>
                     <Icon size={15} /> {tab.label}
                     {tab.key === "requests" && incomingRides.length > 0 && <span className="ml-0.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] text-white">{incomingRides.length}</span>}
-=======
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition ${isActive ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"}`}
-                  >
-                    <Icon size={16} /> {tab.label}
-                    {tab.key === "requests" && incomingRides.length > 0 && <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] text-white">{incomingRides.length}</span>}
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                   </button>
                 );
               })}
@@ -1598,11 +1371,7 @@ const requestWithdrawal = async (event) => {
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-2">
                 <Metric label="Accepted" value={rides?.accepted} />
-<<<<<<< HEAD
                 <Metric label="Kilometres" value={rides?.distanceTravelled} />
-=======
-                <Metric label="Miles" value={rides?.distanceTravelled} />
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                 <Metric label="Cancelled" value={rides?.cancelled} />
               </div>
 
@@ -1652,11 +1421,7 @@ const requestWithdrawal = async (event) => {
                         <div className="mt-3 space-y-2 text-sm font-semibold text-slate-600">
                           <p className="truncate"><span className="font-black text-slate-950">Pickup:</span> {ride.pickup}</p>
                           <p className="truncate"><span className="font-black text-slate-950">Drop-off:</span> {ride.destination}</p>
-<<<<<<< HEAD
                           <p><span className="font-black text-slate-950">Fare:</span> {formatMoney(ride.fare, ride.currency || "NGN")}</p>
-=======
-                          <p><span className="font-black text-slate-950">Fare:</span> {formatMoney(ride.fare, ride.currency || "USD")}</p>
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                         </div>
                         <div className="mt-4 flex gap-2">
                           <button className="secondary-btn min-h-0 flex-1 px-4 py-3 text-sm" onClick={() => rejectRide(ride)}>Reject</button>
@@ -1684,17 +1449,10 @@ const requestWithdrawal = async (event) => {
               </div>
 
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
-<<<<<<< HEAD
                 <DocStatus label="License" url={captain?.documents?.licenseUrl} expiry={captain?.documents?.licenseExpiry} review={captain?.documents?.reviews?.license} onOpen={openDocument} />
                 <DocStatus label="Registration" url={captain?.documents?.vehicleRegistrationUrl} expiry={captain?.documents?.vehicleRegistrationExpiry} review={captain?.documents?.reviews?.registration} onOpen={openDocument} />
                 <DocStatus label="Insurance" url={captain?.documents?.insuranceUrl} expiry={captain?.documents?.insuranceExpiry} review={captain?.documents?.reviews?.insurance} onOpen={openDocument} />
                 <DocStatus label="Government ID" url={captain?.documents?.governmentIdUrl} review={captain?.documents?.reviews?.governmentId} onOpen={openDocument} />
-=======
-                <DocStatus label="License" url={captain?.documents?.licenseUrl} expiry={captain?.documents?.licenseExpiry} onOpen={openDocument} />
-                <DocStatus label="Registration" url={captain?.documents?.vehicleRegistrationUrl} expiry={captain?.documents?.vehicleRegistrationExpiry} onOpen={openDocument} />
-                <DocStatus label="Insurance" url={captain?.documents?.insuranceUrl} expiry={captain?.documents?.insuranceExpiry} onOpen={openDocument} />
-                <DocStatus label="Government ID" url={captain?.documents?.governmentIdUrl} onOpen={openDocument} />
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
               </div>
 
               {showDocumentPanel && (
@@ -1722,7 +1480,6 @@ const requestWithdrawal = async (event) => {
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="soft-card p-4 shadow-none">
-<<<<<<< HEAD
                   <p className="mini-label">Bonus balance</p>
                   <h3 className="mt-1 text-2xl font-black text-slate-950">{formatMoney(earningsSummary?.balance ?? captain?.earnings?.balance ?? 0, earningsSummary?.currency || "NGN")}</h3>
                   <p className="text-xs font-semibold text-slate-500">Platform-funded balance available for payout</p>
@@ -1736,21 +1493,6 @@ const requestWithdrawal = async (event) => {
                   <p className="mini-label">Commission</p>
                   <h3 className="mt-1 text-2xl font-black text-slate-950">{formatMoney(earningsSummary?.totalCommission ?? 0, earningsSummary?.currency || "NGN")}</h3>
                   <p className="text-xs font-semibold text-slate-500">Platform commission recorded on completed trips</p>
-=======
-                  <p className="mini-label">Available balance</p>
-                  <h3 className="mt-1 text-2xl font-black text-slate-950">{formatMoney(earningsSummary?.balance ?? captain?.earnings?.balance ?? 0, earningsSummary?.currency || "USD")}</h3>
-                  <p className="text-xs font-semibold text-slate-500">Can be requested for withdrawal</p>
-                </div>
-                <div className="soft-card p-4 shadow-none">
-                  <p className="mini-label">Total net</p>
-                  <h3 className="mt-1 text-2xl font-black text-slate-950">{formatMoney(earningsSummary?.totalNet ?? earnings.total, earningsSummary?.currency || "USD")}</h3>
-                  <p className="text-xs font-semibold text-slate-500">Completed trips after commission</p>
-                </div>
-                <div className="soft-card p-4 shadow-none">
-                  <p className="mini-label">Bonuses</p>
-                  <h3 className="mt-1 text-2xl font-black text-slate-950">{formatMoney(earningsSummary?.totalBonus ?? 0, earningsSummary?.currency || "USD")}</h3>
-                  <p className="text-xs font-semibold text-slate-500">Campaign rewards</p>
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                 </div>
               </div>
 
@@ -1758,30 +1500,17 @@ const requestWithdrawal = async (event) => {
                 <div className="mb-3">
                   <p className="mini-label">Withdraw funds</p>
                   <h3 className="text-lg font-black text-slate-950">Request a payout</h3>
-<<<<<<< HEAD
                   <p className="mt-1 text-xs font-semibold text-slate-500">Only platform-funded bonuses are withdrawable for now. Passenger fares are collected directly in cash.</p>
-=======
-                  <p className="mt-1 text-xs font-semibold text-slate-500">Admin can approve, pay, or reject withdrawal requests.</p>
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                   <input className="input-box" type="number" min="1" step="0.01" placeholder="Amount" value={withdrawalForm.amount} onChange={(e) => setWithdrawalForm({ ...withdrawalForm, amount: e.target.value })} />
                   <select className="input-box" value={withdrawalForm.method} onChange={(e) => setWithdrawalForm({ ...withdrawalForm, method: e.target.value })}>
                     <option value="bank">Bank transfer</option>
-<<<<<<< HEAD
-=======
-                    <option value="wallet">Wallet</option>
-                    <option value="cash">Cash</option>
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                   </select>
                   <input className="input-box" placeholder="Bank name" value={withdrawalForm.bankName} onChange={(e) => setWithdrawalForm({ ...withdrawalForm, bankName: e.target.value })} />
                   <input className="input-box" placeholder="Account holder" value={withdrawalForm.accountHolder} onChange={(e) => setWithdrawalForm({ ...withdrawalForm, accountHolder: e.target.value })} />
                   <input className="input-box" placeholder="Account number" value={withdrawalForm.accountNumber} onChange={(e) => setWithdrawalForm({ ...withdrawalForm, accountNumber: e.target.value })} />
-<<<<<<< HEAD
                   <input className="input-box" placeholder="Bank code (if required)" value={withdrawalForm.routingNumber} onChange={(e) => setWithdrawalForm({ ...withdrawalForm, routingNumber: e.target.value })} />
-=======
-                  <input className="input-box" placeholder="Routing / transit number" value={withdrawalForm.routingNumber} onChange={(e) => setWithdrawalForm({ ...withdrawalForm, routingNumber: e.target.value })} />
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                 </div>
                 <button className="primary-btn mt-3 w-full" type="submit" disabled={loading || !withdrawalForm.amount}>Request withdrawal</button>
               </form>
@@ -1794,11 +1523,7 @@ const requestWithdrawal = async (event) => {
                 <div className="mt-3 space-y-2">
                   {withdrawals.length ? withdrawals.map((item) => (
                     <div key={item._id} className="rounded-2xl bg-slate-50 p-3 text-sm font-semibold text-slate-600">
-<<<<<<< HEAD
                       <div className="flex items-center justify-between gap-3"><span className="font-black text-slate-950">{formatMoney(item.amount, item.currency || earningsSummary?.currency || "NGN")}</span><span className="capitalize">{item.status}</span></div>
-=======
-                      <div className="flex items-center justify-between gap-3"><span className="font-black text-slate-950">{formatMoney(item.amount, item.currency || earningsSummary?.currency || "USD")}</span><span className="capitalize">{item.status}</span></div>
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                       <p className="mt-1 text-xs">{item.method} • {new Date(item.createdAt).toLocaleString()}</p>
                     </div>
                   )) : <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">No withdrawal requests yet.</p>}
@@ -1815,11 +1540,7 @@ const requestWithdrawal = async (event) => {
                         <div key={campaign._id || index} className="rounded-2xl bg-slate-50 p-4">
                           <h4 className="font-black text-slate-950">{campaign.name || campaign.title || "Bonus campaign"}</h4>
                           <p className="mt-1 text-sm font-semibold text-slate-500">Progress: {item.completedCount ?? 0} / {item.target || campaign.targetRides || campaign.targetRideCount || 0} rides</p>
-<<<<<<< HEAD
                           <p className="mt-1 text-sm font-black text-emerald-700">Bonus: {formatMoney(campaign.rewardAmount || campaign.bonusAmount || 0, earningsSummary?.currency || "NGN")}</p>
-=======
-                          <p className="mt-1 text-sm font-black text-emerald-700">Bonus: {formatMoney(campaign.rewardAmount || campaign.bonusAmount || 0, earningsSummary?.currency || "USD")}</p>
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
                         </div>
                       );
                     })}
@@ -1845,7 +1566,6 @@ const requestWithdrawal = async (event) => {
         </div>
       )}
 
-<<<<<<< HEAD
       {showLocationSetup && (
         <div className="modal-backdrop z-[120]">
           <div className="modal-sheet max-w-[620px] !bg-[#f7f9fc]">
@@ -1941,18 +1661,11 @@ const requestWithdrawal = async (event) => {
 
       {showPassengerRating && <div className="modal-backdrop"><div className="modal-sheet"><p className="mini-label">Trip completed</p><h2 className="text-2xl font-black text-slate-950">Rate your passenger</h2><p className="mt-1 text-sm font-semibold text-slate-500">Feedback helps QuickRide identify reliable riders and safety concerns.</p><div className="mt-4 grid grid-cols-5 gap-2">{[1,2,3,4,5].map((value) => <button key={value} type="button" onClick={() => { setPassengerRating(value); setPassengerRatingTags([]); }} className={`rounded-2xl border py-3 font-black ${passengerRating === value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"}`}>{value}★</button>)}</div><div className="mt-4 flex flex-wrap gap-2">{(passengerRating >= 4 ? ["Ready at pickup", "Respectful", "Friendly", "Clear pickup", "Easy trip"] : ["Passenger late", "Unreachable", "Rude behaviour", "Unsafe behaviour", "Pickup issue"]).map((tag) => { const selected = passengerRatingTags.includes(tag); return <button key={tag} type="button" onClick={() => setPassengerRatingTags((items) => selected ? items.filter((item) => item !== tag) : [...items, tag].slice(0, 6))} className={`rounded-full border px-3 py-2 text-xs font-black ${selected ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-slate-50 text-slate-600"}`}>{tag}</button>; })}</div><textarea className="input-box mt-4 min-h-24 resize-none" value={passengerReview} onChange={(e) => setPassengerReview(e.target.value)} placeholder="Optional feedback" /><div className="mt-4 grid grid-cols-2 gap-3"><button className="secondary-btn" onClick={() => setShowPassengerRating(false)}>Later</button><button className="primary-btn" onClick={submitPassengerRating}>Submit</button></div></div></div>}
       <MobileBottomNav userType="captain" />
-=======
-      <NewRide rideData={newRide} otp={otp} setOtp={setOtp} showBtn={showBtn} showPanel={showNewRidePanel} setShowPanel={setShowNewRidePanel} showPreviousPanel={setShowCaptainDetailsPanel} loading={loading} acceptRide={acceptRide} rejectRide={rejectRide} verifyOTP={verifyOTP} endRide={endRide} error={error} />
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     </div>
   );
 }
 
-<<<<<<< HEAD
 function DocStatus({ label, url, expiry, review, onOpen }) {
-=======
-function DocStatus({ label, url, expiry, onOpen }) {
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   const expired = expiry ? new Date(expiry).getTime() < Date.now() : false;
   return (
     <div className="rounded-2xl bg-slate-50 p-3 text-sm">
@@ -1960,11 +1673,8 @@ function DocStatus({ label, url, expiry, onOpen }) {
       <p className={`mt-1 text-xs font-bold ${url ? expired ? "text-amber-700" : "text-emerald-700" : "text-red-600"}`}>
         {url ? expired ? "Uploaded / expired" : "Uploaded" : "Missing"}
       </p>
-<<<<<<< HEAD
       <p className={`mt-1 text-[10px] font-black uppercase tracking-wide ${review?.status === "approved" ? "text-emerald-700" : review?.status === "rejected" || review?.status === "expired" ? "text-red-600" : "text-amber-700"}`}>Admin: {review?.status || "pending"}</p>
       {review?.note && <p className="mt-1 text-[10px] font-semibold leading-4 text-slate-500">{review.note}</p>}
-=======
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       {expiry && <p className="mt-1 text-[11px] font-semibold text-slate-500">Expires {new Date(expiry).toLocaleDateString()}</p>}
       {url && <button type="button" className="mt-2 inline-block text-left text-xs font-black text-blue-700 underline" onClick={() => onOpen?.(url, label)}>View document</button>}
     </div>

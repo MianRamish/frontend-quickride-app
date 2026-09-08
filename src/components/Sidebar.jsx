@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useContext, useEffect, useState } from "react";
 import {
   ChevronRight,
@@ -15,56 +14,28 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Console from "../utils/console";
 import { SocketDataContext } from "../contexts/SocketContext";
-=======
-import { useEffect, useState } from "react";
-
-import { ChevronRight, CircleUserRound, History, KeyRound, Menu, X } from "lucide-react";
-import Button from "./Button";
-import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
-import Console from "../utils/console";
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
 function Sidebar() {
   const token = localStorage.getItem("token");
   const [showSidebar, setShowSidebar] = useState(false);
   const [newUser, setNewUser] = useState({});
   const navigate = useNavigate();
-<<<<<<< HEAD
   const { socket } = useContext(SocketDataContext);
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("userData"));
     setNewUser(userData || {});
-=======
-
-  useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    setNewUser(userData);
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   }, []);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
-<<<<<<< HEAD
     document.body.style.overflow = showSidebar ? "hidden" : originalOverflow || "";
     return () => { document.body.style.overflow = originalOverflow || ""; };
-=======
-    if (showSidebar) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = originalOverflow || "";
-    }
-    return () => {
-      document.body.style.overflow = originalOverflow || "";
-    };
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
   }, [showSidebar]);
 
   const closeSidebar = () => setShowSidebar(false);
 
   const logout = async () => {
-<<<<<<< HEAD
     // Stop the authenticated live session first so a signed-out driver/passenger
     // cannot remain reachable through an already-open Socket.IO connection.
     try { socket?.emit("leave-session"); } catch (_) {}
@@ -77,56 +48,26 @@ function Sidebar() {
       ["token", "userData", "messages", "rideDetails", "panelDetails", "showPanel", "showBtn"].forEach((key) => localStorage.removeItem(key));
       closeSidebar();
       navigate("/");
-=======
-    try {
-      await axios.get(`${import.meta.env.VITE_SERVER_URL}/${newUser.type}/logout`, {
-        headers: { token },
-      });
-
-      localStorage.removeItem("token");
-      localStorage.removeItem("userData");
-      localStorage.removeItem("messages");
-      localStorage.removeItem("rideDetails");
-      localStorage.removeItem("panelDetails");
-      localStorage.removeItem("showPanel");
-      localStorage.removeItem("showBtn");
-      closeSidebar();
-      navigate("/");
-    } catch (error) {
-      Console.log("Error getting logged out", error);
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
     }
   };
 
   const initials = `${newUser?.data?.fullname?.firstname?.[0] || ""}${newUser?.data?.fullname?.lastname?.[0] || ""}` || "U";
-<<<<<<< HEAD
   const fullName = `${newUser?.data?.fullname?.firstname || ""} ${newUser?.data?.fullname?.lastname || ""}`.trim() || "QuickRide user";
   const role = newUser?.type === "captain" ? "Driver partner" : "Passenger";
-=======
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 
   return (
     <>
       <button
         type="button"
-<<<<<<< HEAD
         className="absolute right-4 top-[calc(env(safe-area-inset-top)+16px)] z-[65] icon-btn-dark"
         onClick={() => setShowSidebar(true)}
         aria-label="Open profile menu"
       >
         <Menu size={21} />
-=======
-        className="absolute right-4 top-4 z-[65] rounded-2xl border border-white/30 bg-white/90 p-2 text-slate-900 shadow-lg backdrop-blur"
-        onClick={() => setShowSidebar(true)}
-        aria-label="Open profile menu"
-      >
-        <Menu />
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
       </button>
 
       {showSidebar && (
         <>
-<<<<<<< HEAD
           <button type="button" className="fixed inset-0 z-[69] bg-slate-950/55 backdrop-blur-sm" onClick={closeSidebar} aria-label="Close profile panel" />
 
           <aside className="fixed bottom-0 right-0 top-0 z-[70] flex w-[min(90vw,390px)] flex-col overflow-hidden rounded-l-[34px] bg-[#f6f8fb] text-slate-950 shadow-[-30px_0_80px_rgba(2,8,23,.24)]">
@@ -176,81 +117,6 @@ function Sidebar() {
                 <LogOut size={18} /> Sign out
               </button>
             </div>
-=======
-          <button
-            type="button"
-            className="fixed inset-0 z-[69] bg-slate-950/30 backdrop-blur-[2px]"
-            onClick={closeSidebar}
-            aria-label="Close profile panel"
-          />
-
-          <aside className="fixed inset-0 z-[70] flex flex-col bg-white text-slate-950">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 pb-4 pt-4">
-              <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
-              <button
-                type="button"
-                onClick={closeSidebar}
-                className="rounded-full p-2 text-slate-700 transition hover:bg-slate-100"
-                aria-label="Close profile panel"
-              >
-                <X />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-5 pb-32 pt-6">
-              <div className="mb-8 text-center">
-                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-blue-400 text-5xl text-white shadow-sm">
-                  {initials}
-                </div>
-                <h2 className="mt-4 text-[34px] font-black leading-none tracking-tight">
-                  {newUser?.data?.fullname?.firstname} {newUser?.data?.fullname?.lastname}
-                </h2>
-                <p className="mt-2 break-all text-sm font-medium text-slate-400">{newUser?.data?.email}</p>
-              </div>
-
-              <div className="space-y-2">
-                <Link
-                  to={`/${newUser?.type}/edit-profile`}
-                  onClick={closeSidebar}
-                  className="flex items-center justify-between rounded-2xl px-3 py-4 transition hover:bg-slate-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <CircleUserRound className="h-5 w-5" />
-                    <span className="text-base font-medium">Edit Profile</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-slate-500" />
-                </Link>
-
-                <Link
-                  to={`/${newUser?.type}/rides`}
-                  onClick={closeSidebar}
-                  className="flex items-center justify-between rounded-2xl px-3 py-4 transition hover:bg-slate-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <History className="h-5 w-5" />
-                    <span className="text-base font-medium">Ride History</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-slate-500" />
-                </Link>
-
-                <Link
-                  to={`/${newUser?.type}/reset-password?token=${token}`}
-                  onClick={closeSidebar}
-                  className="flex items-center justify-between rounded-2xl px-3 py-4 transition hover:bg-slate-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <KeyRound className="h-5 w-5" />
-                    <span className="text-base font-medium">Change Password</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-slate-500" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-slate-100 bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-4">
-              <Button title={"Logout"} classes={"bg-red-600"} fun={logout} />
-            </div>
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
           </aside>
         </>
       )}
@@ -258,7 +124,6 @@ function Sidebar() {
   );
 }
 
-<<<<<<< HEAD
 function MenuLink({ to, onClick, icon: Icon, title, subtitle }) {
   return (
     <Link to={to} onClick={onClick} className="group flex items-center gap-3 rounded-[22px] border border-transparent bg-white px-3 py-3.5 shadow-[0_8px_24px_rgba(15,23,42,.04)] transition hover:border-slate-200">
@@ -272,6 +137,4 @@ function MenuLink({ to, onClick, icon: Icon, title, subtitle }) {
   );
 }
 
-=======
->>>>>>> 26cceed184f29a0805f2d5ed809f7622d67499e7
 export default Sidebar;
