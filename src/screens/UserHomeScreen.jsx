@@ -87,6 +87,8 @@ function UserHomeScreen() {
   const [savedPlaces, setSavedPlaces] = useState([]);
   const [locationActionLoading, setLocationActionLoading] = useState(false);
   const [isUsingLivePickup, setIsUsingLivePickup] = useState(false);
+  const [serviceAreaStatus, setServiceAreaStatus] = useState("unknown");
+  const [driverLiveAt, setDriverLiveAt] = useState(null);
   const suggestionRequestId = useRef(0);
 
   const [showFindTripPanel, setShowFindTripPanel] = useState(true);
@@ -130,6 +132,7 @@ function UserHomeScreen() {
       setPickupConfirmed(false);
       setPickupCoords(null);
       setIsUsingLivePickup(false);
+      setServiceAreaStatus("unknown");
     }
     if (id === "destination") {
       setDestinationLocation(value);
@@ -167,6 +170,7 @@ function UserHomeScreen() {
       setPickupConfirmed(true);
       setPickupCoords(null);
       setIsUsingLivePickup(false);
+      setServiceAreaStatus("inside");
     } else {
       setDestinationLocation(suggestion);
       setDestinationConfirmed(true);
@@ -213,6 +217,7 @@ function UserHomeScreen() {
       );
       setFare(response.data.fare || { car: 0, bike: 0 });
       setFarePricing(response.data.pricing || null);
+      setServiceAreaStatus("inside");
       setFareBreakdown(response.data.fareBreakdown || null);
       setCurrency(response.data.market?.currency || "NGN");
       const distanceTime = response.data.distanceTime || {};
@@ -237,6 +242,8 @@ function UserHomeScreen() {
       setShowSelectVehiclePanel(true);
       setLocationSuggestion([]);
     } catch (error) {
+      const code = error?.response?.data?.code;
+      if (code === "OUTSIDE_SERVICE_AREA") setServiceAreaStatus("outside");
       const message =
         error?.response?.data?.message ||
         error?.message ||
@@ -487,6 +494,7 @@ function UserHomeScreen() {
         setPickupLocation(address);
         setPickupConfirmed(true);
         setIsUsingLivePickup(true);
+        setServiceAreaStatus("inside");
         rememberPlace(address);
         setMapNotice("Live GPS pickup is active. Your pickup coordinates will stay updated until you choose another location.");
       } catch (error) {
@@ -498,10 +506,12 @@ function UserHomeScreen() {
         if (serviceAreaMessage) {
           setPickupConfirmed(false);
           setIsUsingLivePickup(false);
+          setServiceAreaStatus("outside");
           setMapNotice(serviceAreaMessage);
         } else {
           setPickupConfirmed(true);
           setIsUsingLivePickup(true);
+          setServiceAreaStatus("unknown");
           setMapNotice("Live GPS pickup is active. Fare calculation will use your coordinates directly.");
         }
       } finally {
@@ -512,6 +522,11 @@ function UserHomeScreen() {
       setIsUsingLivePickup(false);
       setMapNotice(getLocationErrorMessage(error));
     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 });
+  };
+
+  const stopLivePickup = () => {
+    setIsUsingLivePickup(false);
+    setMapNotice("Live GPS updates stopped. QuickRide will keep the last confirmed pickup location.");
   };
 
   useEffect(() => {
@@ -578,6 +593,7 @@ function UserHomeScreen() {
       );
       if (data?.captain?.location?.coordinates) {
         setMapCenter([data.captain.location.coordinates[1], data.captain.location.coordinates[0]]);
+        setDriverLiveAt(data.captain.lastLocationAt || new Date().toISOString());
       }
     };
 
@@ -597,13 +613,14 @@ function UserHomeScreen() {
 
     const onRideCancelled = () => resetRideUi();
     const onCaptainLocation = (payload) => {
-      if (!payload?.location?.ltd || !payload?.location?.lng) return;
-      setMapCenter([payload.location.ltd, payload.location.lng]);
+      if (!Number.isFinite(Number(payload?.location?.ltd)) || !Number.isFinite(Number(payload?.location?.lng))) return;
+      setDriverLiveAt(payload.updatedAt || new Date().toISOString());
       setConfirmedRideData((prev) => prev ? {
         ...prev,
         captain: {
           ...(prev.captain || payload.captain || {}),
-          location: { coordinates: [payload.location.lng, payload.location.ltd] },
+          location: { coordinates: [Number(payload.location.lng), Number(payload.location.ltd)] },
+          liveHeading: Number.isFinite(Number(payload.location.heading)) ? Number(payload.location.heading) : prev?.captain?.liveHeading,
         },
       } : prev);
     };
@@ -707,6 +724,8 @@ function UserHomeScreen() {
           title: "Driver",
           subtitle: `${confirmedRideData?.captain?.fullname?.firstname || ""} ${confirmedRideData?.captain?.fullname?.lastname || ""}`.trim(),
           color: "#f59e0b",
+          kind: "vehicle",
+          animated: true,
         }
       : null,
   ].filter(Boolean);
@@ -739,10 +758,10 @@ function UserHomeScreen() {
         </div>
 
         <div className="relative h-[calc(100%_-_62px)]">
-          <LiveMap height="100%" center={mapCenter} markers={markers} routeCoords={routeCoords} />
+          <LiveMap height="100%" center={mapCenter} markers={markers} routeCoords={routeCoords} followMarkerKey={confirmedRideData ? "captain" : null} />
           <div className="pointer-events-none absolute left-3 top-3 z-[500] flex gap-2">
             <span className="rounded-full border border-white/80 bg-white/95 px-3 py-1.5 text-[10px] font-black text-slate-700 shadow-lg backdrop-blur"><Navigation size={11} className="mr-1 inline" /> Live map</span>
-            {confirmedRideData && <span className="rounded-full bg-emerald-600 px-3 py-1.5 text-[10px] font-black text-white shadow-lg">Driver connected</span>}
+            {confirmedRideData && <span className="rounded-full bg-emerald-600 px-3 py-1.5 text-[10px] font-black text-white shadow-lg">{driverLiveAt ? "Driver live" : "Driver connected"}</span>}
           </div>
         </div>
         {mapNotice && (
@@ -827,7 +846,29 @@ function UserHomeScreen() {
             </div>
           </div>
 
-          <button type="button" onClick={useCurrentLocationAsPickup} disabled={locationActionLoading} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] border border-emerald-100 bg-emerald-50 px-3 text-xs font-black text-emerald-800 disabled:opacity-60"><Navigation size={15} /> {locationActionLoading ? "Finding your location…" : "Use my current location for pickup"}</button>
+          <div className="space-y-2">
+            <div className={serviceAreaStatus === "outside" ? "rounded-[20px] border border-red-200 bg-red-50 px-3 py-3" : isUsingLivePickup ? "rounded-[20px] border border-emerald-200 bg-emerald-50 px-3 py-3" : "rounded-[20px] border border-slate-200 bg-slate-50 px-3 py-3"}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className={serviceAreaStatus === "outside" ? "text-[10px] font-black uppercase tracking-[0.12em] text-red-600" : isUsingLivePickup ? "text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700" : "text-[10px] font-black uppercase tracking-[0.12em] text-slate-500"}>
+                    {serviceAreaStatus === "outside" ? "Outside service area" : isUsingLivePickup ? "Live GPS active" : "Service area"}
+                  </p>
+                  <p className={serviceAreaStatus === "outside" ? "mt-1 text-xs font-bold leading-4 text-red-900" : "mt-1 text-xs font-bold leading-4 text-slate-700"}>
+                    {serviceAreaStatus === "outside"
+                      ? "QuickRide currently operates in Nigeria. Choose a pickup inside the service area to continue."
+                      : isUsingLivePickup
+                        ? "Your pickup coordinates update while this screen is open."
+                        : "QuickRide currently operates in Nigeria. GPS is requested only when you tap the button below."}
+                  </p>
+                </div>
+                {isUsingLivePickup ? <span className="rounded-full bg-emerald-600 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-white">Live</span> : null}
+              </div>
+            </div>
+            <div className={isUsingLivePickup ? "grid grid-cols-[1fr_auto] gap-2" : ""}>
+              <button type="button" onClick={useCurrentLocationAsPickup} disabled={locationActionLoading || isUsingLivePickup} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] border border-emerald-100 bg-emerald-50 px-3 text-xs font-black text-emerald-800 disabled:opacity-60"><Navigation size={15} /> {locationActionLoading ? "Finding your location…" : isUsingLivePickup ? "Live location active" : "Use my current location for pickup"}</button>
+              {isUsingLivePickup ? <button type="button" onClick={stopLivePickup} className="min-h-11 rounded-[18px] border border-slate-200 bg-white px-3 text-xs font-black text-slate-600">Stop</button> : null}
+            </div>
+          </div>
 
           {isLocationSearching ? (
             <div className="min-h-0 overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.10)]">
@@ -929,7 +970,7 @@ function UserHomeScreen() {
 
       <SelectVehicle selectedVehicle={setSelectedVehicle} showPanel={showSelectVehiclePanel} setShowPanel={setShowSelectVehiclePanel} showPreviousPanel={setShowFindTripPanel} showNextPanel={setShowRideDetailsPanel} fare={fare} currency={currency} routeInfo={routeInfo} pricing={farePricing} fareBreakdown={fareBreakdown} />
 
-      <RideDetails pickupLocation={pickupLocation} destinationLocation={destinationLocation} selectedVehicle={selectedVehicle} fare={fare} currency={currency} routeInfo={routeInfo} showPanel={showRideDetailsPanel} setShowPanel={setShowRideDetailsPanel} showPreviousPanel={setShowSelectVehiclePanel} createRide={createRide} cancelRide={cancelRide} loading={loading} rideCreated={rideCreated} confirmedRideData={confirmedRideData} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} paymentMethods={paymentMethods} promoCode={promoCode} setPromoCode={setPromoCode} />
+      <RideDetails pickupLocation={pickupLocation} destinationLocation={destinationLocation} selectedVehicle={selectedVehicle} fare={fare} fareBreakdown={fareBreakdown} farePricing={farePricing} currency={currency} routeInfo={routeInfo} showPanel={showRideDetailsPanel} setShowPanel={setShowRideDetailsPanel} showPreviousPanel={setShowSelectVehiclePanel} createRide={createRide} cancelRide={cancelRide} loading={loading} rideCreated={rideCreated} confirmedRideData={confirmedRideData} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} paymentMethods={paymentMethods} promoCode={promoCode} setPromoCode={setPromoCode} />
 
       {(confirmedRideData || rideCreated) && (
         <div className="fixed fab-stack-nav left-4 right-4 z-40 mx-auto grid max-w-xl grid-cols-2 gap-3 pointer-events-auto">
