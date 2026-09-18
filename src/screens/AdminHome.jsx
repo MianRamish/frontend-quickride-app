@@ -21,10 +21,15 @@ import {
   ShieldAlert,
   CalendarClock,
   WalletCards,
+  TrendingUp,
+  AlertTriangle,
+  Clock3,
+  MapPin,
 } from "lucide-react";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "forecast", label: "Demand Forecast", icon: TrendingUp },
   { id: "passengers", label: "Passengers", icon: UsersRound },
   { id: "drivers", label: "Drivers", icon: ShieldCheck },
   { id: "vehicles", label: "Vehicles", icon: CarFront },
@@ -147,6 +152,7 @@ export default function AdminHome() {
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
   const [summary, setSummary] = useState(null);
+  const [demandForecast, setDemandForecast] = useState(null);
   const [users, setUsers] = useState([]);
   const [captains, setCaptains] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -175,8 +181,9 @@ export default function AdminHome() {
     if (!token) return navigate("/admin/login");
     try {
       setLoading(true);
-      const [summaryRes, usersRes, captainsRes, vehiclesRes, ridesRes, onlineRes, reviewsRes, payoutsRes, bonusesRes, emergenciesRes, complaintsRes, withdrawalsRes, scheduledRes, pricingRes, settlementsRes, promosRes, liveOpsRes] = await Promise.all([
+      const [summaryRes, forecastRes, usersRes, captainsRes, vehiclesRes, ridesRes, onlineRes, reviewsRes, payoutsRes, bonusesRes, emergenciesRes, complaintsRes, withdrawalsRes, scheduledRes, pricingRes, settlementsRes, promosRes, liveOpsRes] = await Promise.all([
         http.get("/api/admin/analytics/summary"),
+        http.get("/api/admin/analytics/demand-forecast?horizon=12"),
         http.get("/api/admin/users"),
         http.get("/api/admin/captains"),
         http.get("/api/admin/vehicles"),
@@ -195,6 +202,7 @@ export default function AdminHome() {
         http.get("/api/admin/live-operations"),
       ]);
       setSummary(summaryRes.data || {});
+      setDemandForecast(forecastRes.data || null);
       setUsers(usersRes.data || []);
       setCaptains(captainsRes.data || []);
       setVehicles(vehiclesRes.data || []);
@@ -258,8 +266,15 @@ export default function AdminHome() {
         setSummary(summaryData.data || {});
       } catch (_) {}
     }, 15000);
+    const forecastPoll = window.setInterval(async () => {
+      try {
+        const response = await http.get("/api/admin/analytics/demand-forecast?horizon=12");
+        setDemandForecast(response.data || null);
+      } catch (_) {}
+    }, 60000);
     return () => {
       window.clearInterval(poll);
+      window.clearInterval(forecastPoll);
       socket.off("connect", joinAdmin);
       socket.off("admin-captain-location", onCaptainLocation);
       socket.off("notification", onAdminNotification);
@@ -431,7 +446,8 @@ export default function AdminHome() {
           </aside>
 
           <main className="min-w-0 space-y-4">
-            {activeTab === "overview" && <Overview summary={summary} rides={rides} captains={captains} users={users} payouts={payouts} bonuses={bonuses} docs={docs} />}
+            {activeTab === "overview" && <Overview summary={summary} forecast={demandForecast} rides={rides} captains={captains} users={users} payouts={payouts} bonuses={bonuses} docs={docs} />}
+            {activeTab === "forecast" && <DemandForecast forecast={demandForecast} />}
             {activeTab === "passengers" && <Passengers users={users} form={passengerForm} setForm={setPassengerForm} onSubmit={createPassenger} onDelete={removeUser} toggleStatus={togglePassenger} />}
             {activeTab === "drivers" && <Drivers captains={captains} form={driverForm} setForm={setDriverForm} onSubmit={createDriver} approve={approve} toggleDriver={toggleDriver} suspendDriver={suspendDriver} removeDriver={removeDriver} />}
             {activeTab === "vehicles" && <Vehicles vehicles={vehicles} captains={captains} form={vehicleForm} setForm={setVehicleForm} onSubmit={createVehicle} onDelete={removeVehicle} />}
@@ -454,11 +470,12 @@ export default function AdminHome() {
   );
 }
 
-function Overview({ summary, rides, captains, users, payouts, bonuses, docs }) {
+function Overview({ summary, forecast, rides, captains, users, payouts, bonuses, docs }) {
   const pendingDrivers = captains.filter((c) => !c.isApproved).length;
   const pendingPayouts = payouts.filter((p) => p.status !== "paid").reduce((sum, p) => sum + Number(p.amount || 0), 0);
   const expiredDocs = docs.filter((d) => d.status !== "Valid").length;
   const activeBonuses = bonuses.filter((b) => b.isActive).length;
+  const nextPressure = forecast?.buckets?.find((bucket) => ["high", "critical"].includes(bucket.risk));
   return (
     <div className="space-y-4">
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -467,6 +484,16 @@ function Overview({ summary, rides, captains, users, payouts, bonuses, docs }) {
         <Metric icon={Route} label="Completed rides" value={summary?.completed ?? 0} sub={`${summary?.cancelled ?? 0} cancelled`} />
         <Metric icon={CircleDollarSign} label="Revenue" value={money(summary?.revenue || 0)} sub={`${money(pendingPayouts)} pending payouts`} />
       </section>
+      {nextPressure ? (
+        <section className="admin-card border border-amber-200 bg-amber-50 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700"><AlertTriangle size={20} /></div>
+              <div><p className="mini-label text-amber-700">Upcoming supply pressure</p><h2 className="text-lg font-black text-amber-950">{nextPressure.localLabel}: about {nextPressure.predictedRequests} ride requests vs {nextPressure.projectedSupply} projected drivers</h2><p className="mt-1 text-xs font-bold text-amber-800">Estimated driver gap: {nextPressure.driverGap}. Open Demand Forecast for zone-level repositioning guidance.</p></div>
+            </div>
+          </div>
+        </section>
+      ) : null}
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="admin-card p-5 xl:col-span-2">
           <div className="mb-4 flex items-center gap-3"><BarChart3 /><div><p className="mini-label">Analytics</p><h2 className="text-2xl font-black">System snapshot</h2></div></div>
@@ -484,6 +511,80 @@ function Overview({ summary, rides, captains, users, payouts, bonuses, docs }) {
             <Row label="Pending payout value" value={money(pendingPayouts)} />
           </div>
         </div>
+      </section>
+    </div>
+  );
+}
+
+function DemandForecast({ forecast }) {
+  if (!forecast) {
+    return <section className="admin-card p-5"><p className="mini-label">Predictive analytics</p><h2 className="mt-1 text-2xl font-black">Demand forecast unavailable</h2><p className="mt-2 text-sm font-semibold text-slate-500">Refresh the dashboard after the backend forecast endpoint is available.</p></section>;
+  }
+
+  const buckets = forecast.buckets || [];
+  const maxDemand = Math.max(1, ...buckets.map((bucket) => Number(bucket.predictedRequests || 0)));
+  const pressureBuckets = buckets.filter((bucket) => ["high", "critical"].includes(bucket.risk));
+  const nextPressure = pressureBuckets[0];
+  const confidenceLabel = `${forecast.confidence || "low"} confidence • ${forecast.sampleSize || 0} historical rides`;
+
+  const riskClass = (risk) => risk === "critical"
+    ? "bg-red-100 text-red-700"
+    : risk === "high"
+      ? "bg-amber-100 text-amber-800"
+      : risk === "watch"
+        ? "bg-blue-100 text-blue-700"
+        : "bg-emerald-100 text-emerald-700";
+
+  return (
+    <div className="space-y-4">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric icon={ShieldCheck} label="Available drivers now" value={forecast.availableDriversNow || 0} sub={`${forecast.busyDriversNow || 0} currently busy`} />
+        <Metric icon={Clock3} label="Average trip" value={`${forecast.averageTripMinutes || 0} min`} sub={`${forecast.ridesPerDriverPerHour || 0} rides/driver/hour`} />
+        <Metric icon={TrendingUp} label="Forecast window" value={`${forecast.horizonHours || 0} hr`} sub={confidenceLabel} />
+        <Metric icon={AlertTriangle} label="Pressure periods" value={pressureBuckets.length} sub={nextPressure ? `Next: ${nextPressure.localLabel}` : "No projected shortage"} />
+      </section>
+
+      <section className="admin-card p-4 sm:p-5">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div><p className="mini-label">Predictive demand</p><h2 className="text-2xl font-black">Upcoming demand vs driver supply</h2><p className="mt-1 text-sm font-semibold text-slate-500">Historical same-day/hour demand is combined with known scheduled pickups. Driver supply uses fresh online GPS status.</p></div>
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-600">{forecast.timezone || "Africa/Lagos"}</span>
+        </div>
+        <div className="space-y-3">
+          {buckets.map((bucket) => {
+            const width = `${Math.max(4, Math.min(100, (Number(bucket.predictedRequests || 0) / maxDemand) * 100))}%`;
+            return (
+              <div key={bucket.startsAt} className="rounded-[22px] border border-slate-200 bg-slate-50 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div><p className="text-sm font-black text-slate-950">{bucket.localLabel}</p><p className="mt-0.5 text-[10px] font-bold text-slate-500">{bucket.scheduledCount || 0} scheduled • historical baseline {bucket.historicalExpected || 0}</p></div>
+                  <span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${riskClass(bucket.risk)}`}>{bucket.risk}</span>
+                </div>
+                <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-slate-950" style={{ width }} /></div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-2xl bg-white px-2 py-2"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">Demand</p><p className="mt-1 text-lg font-black">{bucket.predictedRequests}</p></div>
+                  <div className="rounded-2xl bg-white px-2 py-2"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">Drivers</p><p className="mt-1 text-lg font-black">{bucket.projectedSupply}</p></div>
+                  <div className="rounded-2xl bg-white px-2 py-2"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">Gap</p><p className={`mt-1 text-lg font-black ${bucket.driverGap > 0 ? "text-red-600" : "text-emerald-700"}`}>{bucket.driverGap}</p></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="admin-card p-4 sm:p-5">
+        <div className="mb-4"><p className="mini-label">Driver distribution</p><h2 className="text-2xl font-black">Zones to watch in the next 4 hours</h2><p className="mt-1 text-sm font-semibold text-slate-500">Use the driver gap to decide where available drivers should be repositioned before demand increases.</p></div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {(forecast.zoneRecommendations || []).map((item) => (
+            <div key={item.zone} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-3"><div><p className="flex items-center gap-1 text-xs font-black text-slate-950"><MapPin size={14} /> {item.zone}</p><p className="mt-1 text-[10px] font-bold text-slate-500">~{item.predictedRequests} expected requests</p></div><span className={`rounded-full px-2 py-1 text-[9px] font-black ${item.driverGap > 0 ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>{item.driverGap > 0 ? `${item.driverGap} short` : "covered"}</span></div>
+              <div className="mt-3 grid grid-cols-2 gap-2"><MiniStat label="Drivers now" value={item.currentDrivers} /><MiniStat label="Needed" value={item.requiredDrivers} /></div>
+            </div>
+          ))}
+          {!(forecast.zoneRecommendations || []).length ? <div className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500">More ride and driver-location history is needed for zone recommendations.</div> : null}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-xs font-semibold leading-5 text-blue-900">
+        <strong>How this forecast works:</strong> {forecast.methodology} This is an operational estimate, not a guaranteed demand level; accuracy improves as QuickRide collects more ride history.
       </section>
     </div>
   );
