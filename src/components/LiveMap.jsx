@@ -126,7 +126,7 @@ export default function LiveMap({ height = 260, center, markers = [], routeCoord
 
   return (
     <div className={`quickride-map w-full overflow-hidden rounded-[30px] border border-white/70 bg-sky-100 shadow-[0_18px_45px_rgba(15,23,42,0.18)] ${onMapClick ? "quickride-map-select" : ""} ${className}`} style={{ height: mapHeight }}>
-      <style>{`.quickride-moving-marker { transition: transform 900ms linear !important; will-change: transform; }`}</style>
+      <style>{`.quickride-moving-marker { transition: transform 2200ms linear !important; will-change: transform; }`}</style>
       <MapContainer
         center={mapCenter}
         zoom={13}
