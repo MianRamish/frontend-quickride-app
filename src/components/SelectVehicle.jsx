@@ -25,8 +25,14 @@ function SelectVehicle({ selectedVehicle, showPanel, setShowPanel, showPreviousP
             <div className="mt-2 flex flex-wrap gap-1.5">
               {routeInfo?.distanceText ? <span className="pill border-0 bg-blue-50 px-2 py-1 text-[10px] font-black text-blue-700">{routeInfo.distanceText}</span> : null}
               {routeInfo?.durationText ? <span className="pill border-0 bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-700">About {routeInfo.durationText}</span> : null}
+              {routeInfo?.approximate ? <span className="pill border-0 bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-800">Approximate fare</span> : null}
             </div>
           )}
+          {routeInfo?.approximate ? (
+            <p className="mt-2 max-w-md rounded-2xl bg-amber-50 px-3 py-2 text-[10px] font-bold leading-4 text-amber-800">
+              Live routing is temporarily unavailable. This estimate is for guidance only; QuickRide will re-check the live route before confirming a booking.
+            </p>
+          ) : null}
         </div>
         <button onClick={() => { setShowPanel(false); showPreviousPanel(true); }} className="icon-btn" aria-label="Back to trip search"><ChevronDown size={20} /></button>
       </div>
