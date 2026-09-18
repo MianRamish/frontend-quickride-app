@@ -195,6 +195,7 @@ function UserHomeScreen() {
     setPickupCoords(destinationCoords);
     setDestinationCoords(pickupCoords);
     setIsUsingLivePickup(false);
+    setServiceAreaStatus("unknown");
     setLocationSuggestion([]);
     setSuggestionLoading(false);
   };
@@ -430,6 +431,8 @@ function UserHomeScreen() {
     setPickupCoords(null);
     setDestinationCoords(null);
     setIsUsingLivePickup(false);
+    setServiceAreaStatus("unknown");
+    setDriverLiveAt(null);
     setConfirmedRideData(null);
     setRideCreated(false);
     setRideMode("now");
