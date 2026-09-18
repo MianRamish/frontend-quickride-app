@@ -3,7 +3,7 @@ import axios from "axios";
 import { useCaptain } from "../contexts/CaptainContext";
 import { BarChart3, BellRing, CarFront, Check, Crosshair, FileCheck2, FileText, Gauge, LoaderCircle, LocateFixed, MapPin, Navigation, Phone, Power, RefreshCcw, Search, ShieldAlert, Sparkles, UploadCloud, X } from "lucide-react";
 import { SocketDataContext } from "../contexts/SocketContext";
-import { NewRide, Sidebar, NetworkStatusBanner, NotificationBell, MobileBottomNav } from "../components";
+import { NewRide, Sidebar, NetworkStatusBanner, NotificationBell, MobileBottomNav, LocationSuggestions } from "../components";
 import LiveMap from "../components/LiveMap";
 import Console from "../utils/console";
 import { useAlert } from "../hooks/useAlert";
@@ -1625,29 +1625,30 @@ const requestWithdrawal = async (event) => {
               </div>
             ) : null}
 
-            <div className="relative mt-4">
-              <Search className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-slate-400" size={18} />
-              <input
+            <div className="mt-4">
+              <LocationSuggestions
+                inputId="driver-location"
+                variant="standalone"
                 value={manualSearch}
-                onChange={(event) => searchManualPlaces(event.target.value)}
-                className="input-box !pl-11 !pr-11"
+                token={token}
+                confirmed={manualLocationChosen}
                 placeholder="Search area, street or landmark"
-                autoComplete="off"
+                userLocation={Number.isFinite(Number(manualLocationDraft.lat)) && Number.isFinite(Number(manualLocationDraft.lng))
+                  ? { lat: Number(manualLocationDraft.lat), lng: Number(manualLocationDraft.lng) }
+                  : null}
+                helperText="Choose a Nigerian location to pin your driver position."
+                onValueChange={(value) => {
+                  setManualSearch(value);
+                  setManualLocationChosen(false);
+                }}
+                onSelectSuggestion={(place) => {
+                  setManualSearch(place.address);
+                  setManualLocationDraft({ lat: place.lat, lng: place.lng, label: place.address });
+                  setManualLocationChosen(true);
+                  setManualSuggestions([]);
+                }}
               />
-              {manualSearchLoading ? <LoaderCircle className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-slate-400" size={18} /> : null}
             </div>
-
-            {manualSuggestions.length > 0 ? (
-              <div className="mt-2 max-h-44 overflow-y-auto rounded-[22px] border border-slate-200 bg-white p-1 shadow-lg">
-                {manualSuggestions.map((suggestion, index) => (
-                  <button key={`${suggestion}-${index}`} type="button" onClick={() => chooseManualSuggestion(suggestion)} className="flex w-full items-center gap-3 rounded-[17px] px-3 py-3 text-left transition hover:bg-slate-50 active:bg-slate-100">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><MapPin size={16} /></span>
-                    <span className="min-w-0 flex-1 truncate text-xs font-black text-slate-800">{suggestion}</span>
-                    <span className="text-[9px] font-black uppercase tracking-wide text-slate-400">Select</span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
 
             <div className="relative mt-4">
               <LiveMap
