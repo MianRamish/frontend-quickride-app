@@ -153,6 +153,7 @@ const requestWithdrawal = async (event) => {
   // Do not auto-trigger browser location prompts merely because the backend remembers isOnline.
   const [gpsSessionActive, setGpsSessionActive] = useState(false);
   const lastGpsRef = useRef(null);
+  const lastLiveBroadcastRef = useRef({ at: 0, ltd: null, lng: null });
   const geoRequestRef = useRef(null);
   const geoWatchRef = useRef(null);
   const geoPermissionRef = useRef("unknown");
@@ -720,6 +721,32 @@ const requestWithdrawal = async (event) => {
     }
   };
 
+  const shouldBroadcastLiveLocation = (location) => {
+    const previous = lastLiveBroadcastRef.current || {};
+    const now = Date.now();
+    const activeTrip = ["accepted", "arriving", "arrived", "ongoing"].includes(newRide?.status);
+    const minimumInterval = activeTrip ? 2200 : 10000;
+    const targetInterval = activeTrip ? 3500 : 15000;
+    const elapsed = now - Number(previous.at || 0);
+
+    if (!Number.isFinite(Number(previous.ltd)) || !Number.isFinite(Number(previous.lng))) {
+      lastLiveBroadcastRef.current = { at: now, ltd: location.ltd, lng: location.lng };
+      return true;
+    }
+    if (elapsed < minimumInterval) return false;
+
+    const latMeters = (Number(location.ltd) - Number(previous.ltd)) * 111320;
+    const lngMeters = (Number(location.lng) - Number(previous.lng)) * 111320 * Math.cos(Number(location.ltd) * Math.PI / 180);
+    const movedMeters = Math.sqrt(latMeters * latMeters + lngMeters * lngMeters);
+    const movementThreshold = activeTrip ? 12 : 60;
+
+    if (elapsed >= targetInterval || movedMeters >= movementThreshold) {
+      lastLiveBroadcastRef.current = { at: now, ltd: location.ltd, lng: location.lng };
+      return true;
+    }
+    return false;
+  };
+
   const applyGpsPosition = (position) => {
     const liveLocation = {
       ltd: position.coords.latitude,
@@ -742,7 +769,7 @@ const requestWithdrawal = async (event) => {
     setLastLocationAt(now);
     setMapCenter([liveLocation.ltd, liveLocation.lng]);
 
-    if (socket?.connected && captain?._id) {
+    if (socket?.connected && captain?._id && shouldBroadcastLiveLocation(liveLocation)) {
       socket.emit("update-location-captain", {
         userId: captain._id,
         location: { ltd: liveLocation.ltd, lng: liveLocation.lng },
