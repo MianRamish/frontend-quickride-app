@@ -36,7 +36,7 @@ function LocationSuggestions({
   userLocation = null,
   confirmed = false,
   variant = "route",
-  minChars = 2,
+  minChars = 3,
   disabled = false,
   autoFocus = false,
   helperText = "Choose a suggestion to confirm the exact location.",
