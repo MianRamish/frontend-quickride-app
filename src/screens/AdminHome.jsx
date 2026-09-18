@@ -532,6 +532,18 @@ function DemandForecast({ forecast }) {
   const pressureBuckets = buckets.filter((bucket) => ["high", "critical"].includes(bucket.risk));
   const nextPressure = pressureBuckets[0];
   const confidenceLabel = `${forecast.confidence || "low"} confidence • ${forecast.sampleSize || 0} historical rides`;
+  const geoZones = (forecast.zoneRecommendations || []).filter((item) => Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lng)));
+  const zoneMarkers = geoZones.map((item) => ({
+    key: "forecast-" + item.zone,
+    lat: Number(item.lat),
+    lng: Number(item.lng),
+    title: item.zone,
+    subtitle: "~" + item.predictedRequests + " expected requests • " + item.currentDrivers + " drivers now • " + item.driverGap + " short",
+    color: item.driverGap >= 3 ? "#dc2626" : item.driverGap > 0 ? "#d97706" : "#059669",
+    kind: "zone",
+    label: String(item.driverGap || 0),
+  }));
+  const zoneMapCenter = zoneMarkers[0] ? [zoneMarkers[0].lat, zoneMarkers[0].lng] : [6.5244, 3.3792];
 
   const riskClass = (risk) => risk === "critical"
     ? "bg-red-100 text-red-700"
@@ -555,7 +567,8 @@ function DemandForecast({ forecast }) {
           <div><p className="mini-label">Predictive demand</p><h2 className="text-2xl font-black">Upcoming demand vs driver supply</h2><p className="mt-1 text-sm font-semibold text-slate-500">Historical same-day/hour demand is combined with known scheduled pickups. Driver supply uses fresh online GPS status.</p></div>
           <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-600">{forecast.timezone || "Africa/Lagos"}</span>
         </div>
-        <div className="space-y-3">
+        <DemandSupplyChart buckets={buckets} />
+        <div className="mt-4 space-y-3">
           {buckets.map((bucket) => {
             const width = `${Math.max(4, Math.min(100, (Number(bucket.predictedRequests || 0) / maxDemand) * 100))}%`;
             return (
@@ -577,21 +590,83 @@ function DemandForecast({ forecast }) {
       </section>
 
       <section className="admin-card p-4 sm:p-5">
-        <div className="mb-4"><p className="mini-label">Driver distribution</p><h2 className="text-2xl font-black">Zones to watch in the next 4 hours</h2><p className="mt-1 text-sm font-semibold text-slate-500">Use the driver gap to decide where available drivers should be repositioned before demand increases.</p></div>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {(forecast.zoneRecommendations || []).map((item) => (
-            <div key={item.zone} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-start justify-between gap-3"><div><p className="flex items-center gap-1 text-xs font-black text-slate-950"><MapPin size={14} /> {item.zone}</p><p className="mt-1 text-[10px] font-bold text-slate-500">~{item.predictedRequests} expected requests</p></div><span className={`rounded-full px-2 py-1 text-[9px] font-black ${item.driverGap > 0 ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>{item.driverGap > 0 ? `${item.driverGap} short` : "covered"}</span></div>
-              <div className="mt-3 grid grid-cols-2 gap-2"><MiniStat label="Drivers now" value={item.currentDrivers} /><MiniStat label="Needed" value={item.requiredDrivers} /></div>
+        <div className="mb-4"><p className="mini-label">Driver distribution</p><h2 className="text-2xl font-black">Zones to watch in the next 4 hours</h2><p className="mt-1 text-sm font-semibold text-slate-500">Map pins show the projected driver shortage: red is critical, amber needs attention, and green is currently covered.</p></div>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,.75fr)]">
+          <div>
+            {zoneMarkers.length ? (
+              <LiveMap height="min(52dvh, 520px)" markers={zoneMarkers} center={zoneMapCenter} />
+            ) : (
+              <div className="flex min-h-[320px] items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Zone coordinates will appear here as QuickRide collects enough localized trip history.</div>
+            )}
+            <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black">
+              <span className="rounded-full bg-red-100 px-2.5 py-1 text-red-700">Critical shortage</span>
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">Driver gap</span>
+              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">Covered</span>
             </div>
-          ))}
-          {!(forecast.zoneRecommendations || []).length ? <div className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500">More ride and driver-location history is needed for zone recommendations.</div> : null}
+          </div>
+          <div className="space-y-3">
+            {(forecast.zoneRecommendations || []).map((item) => (
+              <div key={item.zone} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-start justify-between gap-3"><div><p className="flex items-center gap-1 text-xs font-black text-slate-950"><MapPin size={14} /> {item.zone}</p><p className="mt-1 text-[10px] font-bold text-slate-500">~{item.predictedRequests} expected requests</p></div><span className={item.driverGap > 0 ? "rounded-full bg-red-100 px-2 py-1 text-[9px] font-black text-red-700" : "rounded-full bg-emerald-100 px-2 py-1 text-[9px] font-black text-emerald-700"}>{item.driverGap > 0 ? item.driverGap + " short" : "covered"}</span></div>
+                <div className="mt-3 grid grid-cols-2 gap-2"><MiniStat label="Drivers now" value={item.currentDrivers} /><MiniStat label="Needed" value={item.requiredDrivers} /></div>
+              </div>
+            ))}
+            {!(forecast.zoneRecommendations || []).length ? <div className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500">More ride and driver-location history is needed for zone recommendations.</div> : null}
+          </div>
         </div>
       </section>
 
       <section className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-xs font-semibold leading-5 text-blue-900">
         <strong>How this forecast works:</strong> {forecast.methodology} This is an operational estimate, not a guaranteed demand level; accuracy improves as QuickRide collects more ride history.
       </section>
+    </div>
+  );
+}
+
+function DemandSupplyChart({ buckets = [] }) {
+  if (!buckets.length) return null;
+
+  const width = 760;
+  const height = 250;
+  const left = 38;
+  const right = 18;
+  const top = 18;
+  const bottom = 42;
+  const plotWidth = width - left - right;
+  const plotHeight = height - top - bottom;
+  const maxValue = Math.max(1, ...buckets.flatMap((bucket) => [
+    Number(bucket.predictedRequests || 0),
+    Number(bucket.projectedSupply || 0),
+    Number(bucket.requiredDrivers || 0),
+  ]));
+  const xFor = (index) => left + (buckets.length <= 1 ? plotWidth / 2 : (index / (buckets.length - 1)) * plotWidth);
+  const yFor = (value) => top + plotHeight - (Number(value || 0) / maxValue) * plotHeight;
+  const pointsFor = (field) => buckets.map((bucket, index) => xFor(index) + "," + yFor(bucket[field])).join(" ");
+
+  return (
+    <div className="overflow-x-auto rounded-[24px] border border-slate-200 bg-slate-50 p-3">
+      <div className="mb-2 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-wide">
+        <span className="flex items-center gap-1.5 text-slate-700"><span className="h-2.5 w-2.5 rounded-full bg-slate-950" /> Expected demand</span>
+        <span className="flex items-center gap-1.5 text-emerald-700"><span className="h-2.5 w-2.5 rounded-full bg-emerald-600" /> Projected drivers</span>
+        <span className="flex items-center gap-1.5 text-amber-700"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" /> Drivers required</span>
+      </div>
+      <svg viewBox={"0 0 " + width + " " + height} className="min-w-[680px] w-full" role="img" aria-label="QuickRide demand and driver supply forecast">
+        {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+          const y = top + plotHeight - fraction * plotHeight;
+          const value = Math.round(maxValue * fraction);
+          return <g key={fraction}><line x1={left} y1={y} x2={width - right} y2={y} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 5" /><text x={left - 8} y={y + 4} textAnchor="end" fontSize="10" fill="#64748b">{value}</text></g>;
+        })}
+        <polyline points={pointsFor("predictedRequests")} fill="none" stroke="#0f172a" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" />
+        <polyline points={pointsFor("projectedSupply")} fill="none" stroke="#059669" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" />
+        <polyline points={pointsFor("requiredDrivers")} fill="none" stroke="#d97706" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="7 6" />
+        {buckets.map((bucket, index) => (
+          <g key={bucket.startsAt || index}>
+            <circle cx={xFor(index)} cy={yFor(bucket.predictedRequests)} r="4" fill="#0f172a" />
+            <circle cx={xFor(index)} cy={yFor(bucket.projectedSupply)} r="4" fill="#059669" />
+            <text x={xFor(index)} y={height - 14} textAnchor="middle" fontSize="10" fontWeight="700" fill="#64748b">{bucket.localLabel}</text>
+          </g>
+        ))}
+      </svg>
     </div>
   );
 }
