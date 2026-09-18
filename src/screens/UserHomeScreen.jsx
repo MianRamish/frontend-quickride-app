@@ -17,6 +17,18 @@ import { SocketDataContext } from "../contexts/SocketContext";
 import Console from "../utils/console";
 import { ArrowDownUp, Banknote, CalendarClock, CheckCircle2, Clock3, GraduationCap, MapPin, Navigation, Plane, Search, ShieldCheck, Sparkles } from "lucide-react";
 
+const DEFAULT_MAP_CENTER = [6.5244, 3.3792];
+
+function getLocationErrorMessage(error) {
+  if (typeof window !== "undefined" && window.isSecureContext === false) {
+    return "Live location requires HTTPS. Open the deployed QuickRide site over a secure connection and try again.";
+  }
+  if (error?.code === 1) return "Location permission is blocked. Allow location access for QuickRide in your browser settings and try again.";
+  if (error?.code === 2) return "Your device could not determine its GPS location. Turn on Location Services and try again.";
+  if (error?.code === 3) return "GPS is taking too long to respond. Move to an open area or try again.";
+  return "Unable to access your current location. You can still enter the pickup manually.";
+}
+
 function UserHomeScreen() {
   const token = localStorage.getItem("token");
   const { socket } = useContext(SocketDataContext);
@@ -62,6 +74,8 @@ function UserHomeScreen() {
   const [destinationLocation, setDestinationLocation] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("car");
   const [fare, setFare] = useState({ car: 0, bike: 0 });
+  const [farePricing, setFarePricing] = useState(null);
+  const [fareBreakdown, setFareBreakdown] = useState(null);
   const [currency, setCurrency] = useState("NGN");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentMethods, setPaymentMethods] = useState([
@@ -72,6 +86,7 @@ function UserHomeScreen() {
   const [promoCode, setPromoCode] = useState("");
   const [savedPlaces, setSavedPlaces] = useState([]);
   const [locationActionLoading, setLocationActionLoading] = useState(false);
+  const [isUsingLivePickup, setIsUsingLivePickup] = useState(false);
   const suggestionRequestId = useRef(0);
 
   const [showFindTripPanel, setShowFindTripPanel] = useState(true);
@@ -113,10 +128,13 @@ function UserHomeScreen() {
     if (id === "pickup") {
       setPickupLocation(value);
       setPickupConfirmed(false);
+      setPickupCoords(null);
+      setIsUsingLivePickup(false);
     }
     if (id === "destination") {
       setDestinationLocation(value);
       setDestinationConfirmed(false);
+      setDestinationCoords(null);
     }
 
     suggestionRequestId.current += 1;
@@ -147,9 +165,12 @@ function UserHomeScreen() {
     if (inputType === "pickup") {
       setPickupLocation(suggestion);
       setPickupConfirmed(true);
+      setPickupCoords(null);
+      setIsUsingLivePickup(false);
     } else {
       setDestinationLocation(suggestion);
       setDestinationConfirmed(true);
+      setDestinationCoords(null);
     }
     setLocationSuggestion([]);
     setSuggestionLoading(false);
@@ -167,6 +188,9 @@ function UserHomeScreen() {
     setDestinationLocation(pickupLocation);
     setPickupConfirmed(destinationConfirmed);
     setDestinationConfirmed(pickupConfirmed);
+    setPickupCoords(destinationCoords);
+    setDestinationCoords(pickupCoords);
+    setIsUsingLivePickup(false);
     setLocationSuggestion([]);
     setSuggestionLoading(false);
   };
@@ -174,11 +198,22 @@ function UserHomeScreen() {
   const getDistanceAndFare = async (pickup, destination) => {
     try {
       setLoading(true);
+      const params = new URLSearchParams({ pickup, destination });
+      if (pickupCoords && Number.isFinite(pickupCoords.lat) && Number.isFinite(pickupCoords.lng)) {
+        params.set("pickupLat", String(pickupCoords.lat));
+        params.set("pickupLng", String(pickupCoords.lng));
+      }
+      if (destinationCoords && Number.isFinite(destinationCoords.lat) && Number.isFinite(destinationCoords.lng)) {
+        params.set("destinationLat", String(destinationCoords.lat));
+        params.set("destinationLng", String(destinationCoords.lng));
+      }
       const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/ride/get-fare?pickup=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`,
+        `${import.meta.env.VITE_SERVER_URL}/ride/get-fare?${params.toString()}`,
         { headers: { token } }
       );
       setFare(response.data.fare || { car: 0, bike: 0 });
+      setFarePricing(response.data.pricing || null);
+      setFareBreakdown(response.data.fareBreakdown || null);
       setCurrency(response.data.market?.currency || "NGN");
       const distanceTime = response.data.distanceTime || {};
       setRouteInfo({
@@ -216,6 +251,8 @@ function UserHomeScreen() {
         rideMode,
         paymentMethod,
         promoCode,
+        ...(pickupCoords ? { pickupCoordinates: { lat: pickupCoords.lat, lng: pickupCoords.lng } } : {}),
+        ...(destinationCoords ? { destinationCoordinates: { lat: destinationCoords.lat, lng: destinationCoords.lng } } : {}),
       };
 
       if (rideMode === "scheduled") {
@@ -272,7 +309,7 @@ function UserHomeScreen() {
   };
 
   const resetRideUi = () => {
-    updateLocation();
+    if (position?.coords) setMapCenter([position.coords.latitude, position.coords.longitude]);
     setRouteCoords([]);
     setRouteInfo({ distanceText: "", durationText: "" });
     setPickupCoords(null);
@@ -374,6 +411,11 @@ function UserHomeScreen() {
     setSuggestionLoading(false);
     setSelectedVehicle("car");
     setFare({ car: 0, bike: 0 });
+    setFarePricing(null);
+    setFareBreakdown(null);
+    setPickupCoords(null);
+    setDestinationCoords(null);
+    setIsUsingLivePickup(false);
     setConfirmedRideData(null);
     setRideCreated(false);
     setRideMode("now");
@@ -382,68 +424,77 @@ function UserHomeScreen() {
     setPromoCode("");
   };
 
-  const DEFAULT_MAP_CENTER = [6.5244, 3.3792];
-
-  const updateLocation = () => {
+  useEffect(() => {
     if (!navigator.geolocation) {
       setMapCenter(DEFAULT_MAP_CENTER);
-      setMapNotice("Location is unavailable. You can still enter pickup and destination manually.");
-      return;
+      setMapNotice("Location is unavailable on this device. You can still enter pickup and destination manually.");
+      return undefined;
+    }
+    if (window.isSecureContext === false) {
+      setMapCenter(DEFAULT_MAP_CENTER);
+      setMapNotice("Live location requires HTTPS. Open QuickRide over a secure connection to use GPS pickup.");
+      return undefined;
     }
 
-    navigator.geolocation.getCurrentPosition(
+    const watchId = navigator.geolocation.watchPosition(
       (currentPosition) => {
+        const lat = currentPosition.coords.latitude;
+        const lng = currentPosition.coords.longitude;
         setPosition(currentPosition);
-        setMapCenter([currentPosition.coords.latitude, currentPosition.coords.longitude]);
-        setMapNotice("");
+        setMapCenter([lat, lng]);
+        if (isUsingLivePickup) setPickupCoords({ lat, lng });
       },
       (error) => {
-        Console.warn?.("Location unavailable, using fallback map center", error);
         setPosition(null);
-        setMapCenter(DEFAULT_MAP_CENTER);
-        setMapNotice("Location permission is unavailable. Type pickup and destination to continue.");
+        if (!isUsingLivePickup) setMapCenter(DEFAULT_MAP_CENTER);
+        setMapNotice(getLocationErrorMessage(error));
       },
-      {
-        enableHighAccuracy: false,
-        timeout: 8000,
-        maximumAge: 60000,
-      }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 15000 }
     );
-  };
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [isUsingLivePickup]);
 
   const useCurrentLocationAsPickup = () => {
     if (!navigator.geolocation) {
       setMapNotice("Location is unavailable on this device.");
       return;
     }
+    if (window.isSecureContext === false) {
+      setMapNotice("Live location requires HTTPS. Open the deployed QuickRide site securely and try again.");
+      return;
+    }
+
     setLocationActionLoading(true);
+    setMapNotice("");
     navigator.geolocation.getCurrentPosition(async (currentPosition) => {
       const lat = currentPosition.coords.latitude;
       const lng = currentPosition.coords.longitude;
       setPosition(currentPosition);
       setMapCenter([lat, lng]);
       setPickupCoords({ lat, lng });
+      setIsUsingLivePickup(true);
       try {
         const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/map/reverse-geocode?lat=${lat}&lng=${lng}`, { headers: { token } });
         const address = response.data?.address || response.data?.display_name || `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
         setPickupLocation(address);
         setPickupConfirmed(true);
         rememberPlace(address);
-        setMapNotice("Pickup set from your current location.");
+        setMapNotice("Live GPS pickup is active. Your pickup coordinates will stay updated until you choose another location.");
       } catch (_) {
         const address = `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
         setPickupLocation(address);
         setPickupConfirmed(true);
-        setMapNotice("Pickup set from GPS.");
+        setMapNotice("Live GPS pickup is active. Fare calculation will use your coordinates directly.");
       } finally {
         setLocationActionLoading(false);
       }
-    }, () => { setLocationActionLoading(false); setMapNotice("Allow location permission to use your current pickup."); }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 15000 });
+    }, (error) => {
+      setLocationActionLoading(false);
+      setIsUsingLivePickup(false);
+      setMapNotice(getLocationErrorMessage(error));
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 });
   };
-
-  useEffect(() => {
-    updateLocation();
-  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -858,7 +909,7 @@ function UserHomeScreen() {
         </div>
       )}
 
-      <SelectVehicle selectedVehicle={setSelectedVehicle} showPanel={showSelectVehiclePanel} setShowPanel={setShowSelectVehiclePanel} showPreviousPanel={setShowFindTripPanel} showNextPanel={setShowRideDetailsPanel} fare={fare} currency={currency} routeInfo={routeInfo} />
+      <SelectVehicle selectedVehicle={setSelectedVehicle} showPanel={showSelectVehiclePanel} setShowPanel={setShowSelectVehiclePanel} showPreviousPanel={setShowFindTripPanel} showNextPanel={setShowRideDetailsPanel} fare={fare} currency={currency} routeInfo={routeInfo} pricing={farePricing} fareBreakdown={fareBreakdown} />
 
       <RideDetails pickupLocation={pickupLocation} destinationLocation={destinationLocation} selectedVehicle={selectedVehicle} fare={fare} currency={currency} routeInfo={routeInfo} showPanel={showRideDetailsPanel} setShowPanel={setShowRideDetailsPanel} showPreviousPanel={setShowSelectVehiclePanel} createRide={createRide} cancelRide={cancelRide} loading={loading} rideCreated={rideCreated} confirmedRideData={confirmedRideData} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} paymentMethods={paymentMethods} promoCode={promoCode} setPromoCode={setPromoCode} />
 
