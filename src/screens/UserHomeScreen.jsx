@@ -735,7 +735,7 @@ function UserHomeScreen() {
 
   const activeSearchValue = selectedInput === "pickup" ? pickupLocation : destinationLocation;
   const activeLocationConfirmed = selectedInput === "pickup" ? pickupConfirmed : destinationConfirmed;
-  const isLocationSearching = activeSearchValue.trim().length >= 3 && !activeLocationConfirmed;
+  const isLocationSearching = false;
   const popularDestinations = [
     { label: "UNILAG", value: "University of Lagos, Akoka, Yaba, Lagos, Nigeria", icon: GraduationCap },
     { label: "Lagos Airport", value: "Murtala Muhammed International Airport, Ikeja, Lagos, Nigeria", icon: Plane },
@@ -800,22 +800,33 @@ function UserHomeScreen() {
 
             <div className="relative z-10 flex items-center gap-3">
               <span className="route-dot" />
-              <label className={`location-input-shell ${selectedInput === "pickup" ? "location-input-shell-active" : ""}`}>
-                <span className="location-input-label">Pickup</span>
-                <span className="flex min-w-0 items-center gap-2">
-                  <input
-                    id="pickup"
-                    placeholder="Area, landmark or address"
-                    className="location-input"
-                    value={pickupLocation}
-                    onChange={onChangeHandler}
-                    onFocus={() => setSelectedInput("pickup")}
-                    autoComplete="off"
-                    inputMode="search"
-                  />
-                  {pickupConfirmed ? <CheckCircle2 className="shrink-0 text-emerald-600" size={18} /> : null}
-                </span>
-              </label>
+              <LocationSuggestions
+                inputId="pickup"
+                label="Pickup"
+                value={pickupLocation}
+                token={token}
+                confirmed={pickupConfirmed}
+                placeholder="Area, landmark or address"
+                userLocation={position?.coords ? { lat: position.coords.latitude, lng: position.coords.longitude } : null}
+                onValueChange={(value) => {
+                  setSelectedInput("pickup");
+                  setPickupLocation(value);
+                  setPickupConfirmed(false);
+                  setPickupCoords(null);
+                  setIsUsingLivePickup(false);
+                  setServiceAreaStatus("unknown");
+                  setMapNotice("");
+                }}
+                onSelectSuggestion={(place) => {
+                  setPickupLocation(place.address);
+                  setPickupCoords({ lat: place.lat, lng: place.lng });
+                  setPickupConfirmed(true);
+                  setIsUsingLivePickup(false);
+                  setServiceAreaStatus("inside");
+                  setMapNotice("");
+                  rememberPlace(place.address);
+                }}
+              />
             </div>
 
             <button
@@ -830,22 +841,29 @@ function UserHomeScreen() {
 
             <div className="relative z-10 mt-2 flex items-center gap-3">
               <span className="route-dot route-dot-destination" />
-              <label className={`location-input-shell ${selectedInput === "destination" ? "location-input-shell-active" : ""}`}>
-                <span className="location-input-label">Drop-off</span>
-                <span className="flex min-w-0 items-center gap-2">
-                  <input
-                    id="destination"
-                    placeholder="Where are you going?"
-                    className="location-input"
-                    value={destinationLocation}
-                    onChange={onChangeHandler}
-                    onFocus={() => setSelectedInput("destination")}
-                    autoComplete="off"
-                    inputMode="search"
-                  />
-                  {destinationConfirmed ? <CheckCircle2 className="shrink-0 text-emerald-600" size={18} /> : null}
-                </span>
-              </label>
+              <LocationSuggestions
+                inputId="destination"
+                label="Drop-off"
+                value={destinationLocation}
+                token={token}
+                confirmed={destinationConfirmed}
+                placeholder="Where are you going?"
+                userLocation={position?.coords ? { lat: position.coords.latitude, lng: position.coords.longitude } : null}
+                onValueChange={(value) => {
+                  setSelectedInput("destination");
+                  setDestinationLocation(value);
+                  setDestinationConfirmed(false);
+                  setDestinationCoords(null);
+                  setMapNotice("");
+                }}
+                onSelectSuggestion={(place) => {
+                  setDestinationLocation(place.address);
+                  setDestinationCoords({ lat: place.lat, lng: place.lng });
+                  setDestinationConfirmed(true);
+                  setMapNotice("");
+                  rememberPlace(place.address);
+                }}
+              />
             </div>
           </div>
 
