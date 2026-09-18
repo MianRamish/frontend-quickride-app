@@ -181,9 +181,15 @@ export default function AdminHome() {
     if (!token) return navigate("/admin/login");
     try {
       setLoading(true);
-      const [summaryRes, forecastRes, usersRes, captainsRes, vehiclesRes, ridesRes, onlineRes, reviewsRes, payoutsRes, bonusesRes, emergenciesRes, complaintsRes, withdrawalsRes, scheduledRes, pricingRes, settlementsRes, promosRes, liveOpsRes] = await Promise.all([
+      const forecastRequest = http.get("/api/admin/analytics/demand-forecast?horizon=12")
+        .then((response) => {
+          setDemandForecast(response.data || null);
+          return response;
+        })
+        .catch(() => null);
+
+      const [summaryRes, usersRes, captainsRes, vehiclesRes, ridesRes, onlineRes, reviewsRes, payoutsRes, bonusesRes, emergenciesRes, complaintsRes, withdrawalsRes, scheduledRes, pricingRes, settlementsRes, promosRes, liveOpsRes] = await Promise.all([
         http.get("/api/admin/analytics/summary"),
-        http.get("/api/admin/analytics/demand-forecast?horizon=12"),
         http.get("/api/admin/users"),
         http.get("/api/admin/captains"),
         http.get("/api/admin/vehicles"),
@@ -201,8 +207,8 @@ export default function AdminHome() {
         http.get("/api/admin/promo-codes"),
         http.get("/api/admin/live-operations"),
       ]);
+      void forecastRequest;
       setSummary(summaryRes.data || {});
-      setDemandForecast(forecastRes.data || null);
       setUsers(usersRes.data || []);
       setCaptains(captainsRes.data || []);
       setVehicles(vehiclesRes.data || []);
