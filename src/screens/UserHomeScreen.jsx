@@ -219,7 +219,14 @@ function UserHomeScreen() {
       setRouteInfo({
         distanceText: distanceTime?.distance?.text || "",
         durationText: distanceTime?.duration?.text || "",
+        approximate: Boolean(distanceTime?.approximate),
+        provider: distanceTime?.provider || "",
       });
+      if (distanceTime?.approximate) {
+        setMapNotice("Approximate fare: live routing is temporarily unavailable. QuickRide will re-check the live route before confirming your booking.");
+      } else {
+        setMapNotice("");
+      }
       const origin = distanceTime.originCoordinates;
       const destinationPoint = distanceTime.destinationCoordinates;
       if (origin) setPickupCoords({ lat: origin.ltd, lng: origin.lng });
@@ -425,6 +432,7 @@ function UserHomeScreen() {
   };
 
   useEffect(() => {
+    if (!isUsingLivePickup) return undefined;
     if (!navigator.geolocation) {
       setMapCenter(DEFAULT_MAP_CENTER);
       setMapNotice("Location is unavailable on this device. You can still enter pickup and destination manually.");
@@ -473,19 +481,29 @@ function UserHomeScreen() {
       setPosition(currentPosition);
       setMapCenter([lat, lng]);
       setPickupCoords({ lat, lng });
-      setIsUsingLivePickup(true);
       try {
         const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/map/reverse-geocode?lat=${lat}&lng=${lng}`, { headers: { token } });
         const address = response.data?.address || response.data?.display_name || `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
         setPickupLocation(address);
         setPickupConfirmed(true);
+        setIsUsingLivePickup(true);
         rememberPlace(address);
         setMapNotice("Live GPS pickup is active. Your pickup coordinates will stay updated until you choose another location.");
-      } catch (_) {
+      } catch (error) {
         const address = `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+        const serviceAreaMessage = error?.response?.data?.code === "OUTSIDE_SERVICE_AREA"
+          ? error?.response?.data?.message
+          : "";
         setPickupLocation(address);
-        setPickupConfirmed(true);
-        setMapNotice("Live GPS pickup is active. Fare calculation will use your coordinates directly.");
+        if (serviceAreaMessage) {
+          setPickupConfirmed(false);
+          setIsUsingLivePickup(false);
+          setMapNotice(serviceAreaMessage);
+        } else {
+          setPickupConfirmed(true);
+          setIsUsingLivePickup(true);
+          setMapNotice("Live GPS pickup is active. Fare calculation will use your coordinates directly.");
+        }
       } finally {
         setLocationActionLoading(false);
       }
