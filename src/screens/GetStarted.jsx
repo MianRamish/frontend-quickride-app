@@ -4,7 +4,6 @@ import {
   Banknote,
   CarFront,
   CheckCircle2,
-  Clock3,
   Gauge,
   MapPinned,
   Navigation,
