@@ -54,7 +54,7 @@ function GetStarted() {
             </span>
             <span className="min-w-0">
               <img className="h-5 max-w-[132px] object-contain object-left brightness-0 invert" src={logo} alt="QuickRide" />
-              <span className="mt-0.5 block text-[8px] font-black uppercase tracking-[0.18em] text-emerald-200">Nigeria ride platform</span>
+              <span className="mt-0.5 hidden text-[8px] font-black uppercase tracking-[0.18em] text-emerald-200 min-[380px]:block">Nigeria ride platform</span>
             </span>
           </button>
 
@@ -64,13 +64,13 @@ function GetStarted() {
           </div>
         </header>
 
-        <section className="grid min-h-[690px] items-center gap-10 py-10 lg:grid-cols-[1.04fr_.96fr] lg:gap-16 lg:py-16">
+        <section className="grid items-center gap-8 py-8 sm:min-h-[690px] sm:gap-10 sm:py-10 lg:grid-cols-[1.04fr_.96fr] lg:gap-16 lg:py-16">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-200 backdrop-blur">
               <Sparkles size={13} /> Rides that feel easier from the first tap
             </div>
 
-            <h1 className="mt-5 max-w-3xl text-[clamp(3rem,11vw,6.4rem)] font-black leading-[0.89] tracking-[-0.065em] text-white">
+            <h1 className="mt-5 max-w-3xl text-[clamp(2.65rem,11vw,6.4rem)] font-black leading-[0.9] tracking-[-0.06em] text-white">
               Move around
               <span className="block bg-gradient-to-r from-emerald-300 via-cyan-200 to-blue-200 bg-clip-text text-transparent">with confidence.</span>
             </h1>
