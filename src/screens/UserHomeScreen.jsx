@@ -18,6 +18,15 @@ import Console from "../utils/console";
 import { ArrowDownUp, Banknote, CalendarClock, CheckCircle2, Clock3, GraduationCap, MapPin, Navigation, Plane, Search, ShieldCheck, Sparkles } from "lucide-react";
 
 const DEFAULT_MAP_CENTER = [6.5244, 3.3792];
+const NIGERIA_SEARCH_BOUNDS = { west: 2.4, south: 4.2, east: 14.7, north: 13.9 };
+
+const isNigeriaMapPoint = (lat, lng) =>
+  Number.isFinite(Number(lat)) &&
+  Number.isFinite(Number(lng)) &&
+  Number(lng) >= NIGERIA_SEARCH_BOUNDS.west &&
+  Number(lng) <= NIGERIA_SEARCH_BOUNDS.east &&
+  Number(lat) >= NIGERIA_SEARCH_BOUNDS.south &&
+  Number(lat) <= NIGERIA_SEARCH_BOUNDS.north;
 
 function getLocationErrorMessage(error) {
   if (typeof window !== "undefined" && window.isSecureContext === false) {
@@ -785,6 +794,10 @@ function UserHomeScreen() {
   const activeSearchValue = selectedInput === "pickup" ? pickupLocation : destinationLocation;
   const activeLocationConfirmed = selectedInput === "pickup" ? pickupConfirmed : destinationConfirmed;
   const isLocationSearching = false;
+  const autocompleteBias = Array.isArray(mapCenter) && isNigeriaMapPoint(mapCenter[0], mapCenter[1])
+    ? { lat: Number(mapCenter[0]), lng: Number(mapCenter[1]) }
+    : { lat: DEFAULT_MAP_CENTER[0], lng: DEFAULT_MAP_CENTER[1] };
+
   const popularDestinations = [
     { label: "UNILAG", value: "University of Lagos, Akoka, Yaba, Lagos, Nigeria", icon: GraduationCap },
     { label: "Lagos Airport", value: "Murtala Muhammed International Airport, Ikeja, Lagos, Nigeria", icon: Plane },
@@ -857,7 +870,7 @@ function UserHomeScreen() {
                 token={token}
                 confirmed={pickupConfirmed}
                 placeholder="House no., street, landmark or area"
-                userLocation={position?.coords ? { lat: position.coords.latitude, lng: position.coords.longitude } : null}
+                userLocation={autocompleteBias}
                 onValueChange={(value) => {
                   setSelectedInput("pickup");
                   setPickupLocation(value);
@@ -872,6 +885,7 @@ function UserHomeScreen() {
                   setPickupLocation(place.address);
                   setPickupCoords({ lat: place.lat, lng: place.lng });
                   setPickupConfirmed(true);
+                  setMapCenter([place.lat, place.lng]);
                   setIsUsingLivePickup(false);
                   setServiceAreaStatus("inside");
                   setMapNotice("");
@@ -904,7 +918,7 @@ function UserHomeScreen() {
                 token={token}
                 confirmed={destinationConfirmed}
                 placeholder="House no., street or destination"
-                userLocation={position?.coords ? { lat: position.coords.latitude, lng: position.coords.longitude } : null}
+                userLocation={autocompleteBias}
                 onValueChange={(value) => {
                   setSelectedInput("destination");
                   setDestinationLocation(value);
@@ -917,6 +931,7 @@ function UserHomeScreen() {
                   setDestinationLocation(place.address);
                   setDestinationCoords({ lat: place.lat, lng: place.lng });
                   setDestinationConfirmed(true);
+                  setMapCenter([place.lat, place.lng]);
                   setMapNotice("");
                   rememberPlace(place.address);
                   const details = await resolveLocationDetails(place.lat, place.lng);
