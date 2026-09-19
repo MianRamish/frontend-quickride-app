@@ -243,3 +243,17 @@ input, textarea, select { min-width: 0; }
   }
   .modal-sheet { max-height: calc(100dvh - env(safe-area-inset-top) - 6px); }
 }
+
+.quickride-map .leaflet-top.leaflet-right .leaflet-control-zoom {
+  margin-top: 14px !important;
+  margin-right: 14px !important;
+  margin-left: 0 !important;
+}
+.driver-home-map .leaflet-control-attribution {
+  margin-bottom: 74px !important;
+}
+@media (max-height: 640px) {
+  .driver-home-map .leaflet-control-attribution {
+    margin-bottom: 68px !important;
+  }
+}
