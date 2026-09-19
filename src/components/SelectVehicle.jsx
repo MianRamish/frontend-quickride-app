@@ -8,7 +8,7 @@ const vehicles = [
 
 function SelectVehicle({ selectedVehicle, showPanel, setShowPanel, showPreviousPanel, showNextPanel, fare, currency = "NGN", routeInfo = {}, pricing = null, fareBreakdown = null }) {
   return (
-    <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet z-40 sheet-scroll`}>
+    <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet floating-sheet-nav z-40 sheet-scroll sheet-scroll-nav`}>
       <div className="sheet-handle mb-3" />
       <div className="flow-steps mb-4">
         <div className="flow-step flow-step-done">1 Route</div>
