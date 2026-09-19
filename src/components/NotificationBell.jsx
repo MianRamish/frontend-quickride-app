@@ -3,6 +3,7 @@ import axios from "axios";
 import { Bell, BellRing, CheckCheck, X } from "lucide-react";
 import { SocketDataContext } from "../contexts/SocketContext";
 import { enablePushNotifications } from "../utils/pushNotifications";
+import { Alert } from "./Alert";
 
 export default function NotificationBell({ userType = "user", dark = true }) {
   const token = localStorage.getItem("token");
@@ -11,6 +12,7 @@ export default function NotificationBell({ userType = "user", dark = true }) {
   const [open, setOpen] = useState(false);
   const [alertNotice, setAlertNotice] = useState("");
   const [alertLoading, setAlertLoading] = useState(false);
+  const [foregroundNotice, setForegroundNotice] = useState(null);
   const endpoint = useMemo(() => `/${userType === "captain" ? "captain" : "user"}/notifications`, [userType]);
   const unread = items.filter((item) => !item.readAt).length;
 
@@ -24,6 +26,11 @@ export default function NotificationBell({ userType = "user", dark = true }) {
     if (!socket) return;
     const onNotification = (item) => {
       setItems((prev) => [item, ...prev.filter((x) => x._id !== item._id)]);
+      const appVisible = typeof document !== "undefined" && document.visibilityState === "visible";
+      if (appVisible) {
+        setForegroundNotice(item);
+        return;
+      }
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         try { new Notification(item.title || "QuickRide", { body: item.body || "", icon: "/icon-192.png" }); } catch (_) {}
       }
@@ -49,8 +56,19 @@ export default function NotificationBell({ userType = "user", dark = true }) {
     }
   };
 
+  const foregroundNoticeType = /cancel|failed|error|declined/i.test(
+    `${foregroundNotice?.title || ""} ${foregroundNotice?.body || ""}`
+  ) ? "failure" : "success";
+
   return (
     <>
+      <Alert
+        heading={foregroundNotice?.title || "QuickRide update"}
+        text={foregroundNotice?.body || ""}
+        isVisible={Boolean(foregroundNotice)}
+        onClose={() => setForegroundNotice(null)}
+        type={foregroundNoticeType}
+      />
       <button type="button" onClick={() => { setOpen(true); load(); }} className={`relative flex h-11 w-11 items-center justify-center rounded-2xl ${dark ? "bg-white/10 text-white" : "border border-slate-200 bg-white text-slate-700"}`} aria-label="Notifications">
         {unread ? <BellRing size={18} /> : <Bell size={18} />}
         {unread > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">{unread > 9 ? "9+" : unread}</span>}
