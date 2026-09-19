@@ -360,18 +360,32 @@ function UserHomeScreen() {
 
   const cancelRide = async (reasonCode = "", reasonText = "") => {
     const rideId = getCurrentRideId();
-    if (!rideId) return resetRideUi();
+    if (!rideId) {
+      resetRideUi();
+      return true;
+    }
+    if (!reasonCode || !String(reasonText || "").trim()) {
+      setMapNotice("Please select a cancellation reason before cancelling the ride.");
+      return false;
+    }
 
     try {
       setLoading(true);
       await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/ride/cancel-user`,
-        { rideId, reasonCode, reasonText },
+        { rideId, reasonCode, reasonText: String(reasonText).trim() },
         { headers: { token } }
       );
       resetRideUi();
+      return true;
     } catch (error) {
+      const message =
+        error?.response?.data?.errors?.[0]?.msg ||
+        error?.response?.data?.message ||
+        "Unable to cancel the ride. Please try again.";
+      setMapNotice(message);
       Console.log(error);
+      return false;
     } finally {
       setLoading(false);
     }
