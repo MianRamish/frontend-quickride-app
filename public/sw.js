@@ -10,7 +10,24 @@ self.addEventListener("push", (event) => {
     renotify: true,
     data: data.data || {},
   };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil((async () => {
+    const clientsList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const visibleClients = clientsList.filter((client) => client.visibilityState === "visible");
+
+    if (visibleClients.length) {
+      visibleClients.forEach((client) => client.postMessage({
+        type: "quickride-push",
+        notification: {
+          title,
+          body: options.body,
+          data: options.data,
+        },
+      }));
+      return;
+    }
+
+    return self.registration.showNotification(title, options);
+  })());
 });
 
 self.addEventListener("notificationclick", (event) => {
