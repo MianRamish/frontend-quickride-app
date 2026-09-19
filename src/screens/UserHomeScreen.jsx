@@ -242,10 +242,11 @@ function UserHomeScreen() {
         distanceText: distanceTime?.distance?.text || "",
         durationText: distanceTime?.duration?.text || "",
         approximate: Boolean(distanceTime?.approximate),
+        routeUnavailable: Boolean(distanceTime?.routeUnavailable),
         provider: distanceTime?.provider || "",
       });
       if (distanceTime?.approximate) {
-        setMapNotice("Approximate fare: live routing is temporarily unavailable. QuickRide will re-check the live route before confirming your booking.");
+        setMapNotice("Live road navigation is temporarily unavailable. QuickRide is showing only the pickup and destination markers and will re-check the road route before booking.");
       } else {
         setMapNotice("");
       }
@@ -253,7 +254,11 @@ function UserHomeScreen() {
       const destinationPoint = distanceTime.destinationCoordinates;
       if (origin) setPickupCoords({ lat: origin.ltd, lng: origin.lng });
       if (destinationPoint) setDestinationCoords({ lat: destinationPoint.ltd, lng: destinationPoint.lng });
-      setRouteCoords(distanceTime.route || []);
+      setRouteCoords(
+        !distanceTime?.approximate && Array.isArray(distanceTime?.route) && distanceTime.route.length > 2
+          ? distanceTime.route
+          : []
+      );
       if (origin) setMapCenter([origin.ltd, origin.lng]);
       setShowFindTripPanel(false);
       setShowSelectVehiclePanel(true);
