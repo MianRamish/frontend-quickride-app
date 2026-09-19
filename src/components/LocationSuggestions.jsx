@@ -191,7 +191,7 @@ function LocationSuggestions({
         {(loading || resolving) ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" /> : null}
       </div>
 
-      <div className="max-h-[280px] overflow-y-auto overscroll-contain p-1">
+      <div className="max-h-[32dvh] overflow-y-auto overscroll-contain p-1 sm:max-h-[280px]">
         {suggestions.map((suggestion, index) => {
           const Icon = getSuggestionIcon(suggestion);
           const parts = suggestion.split(",").map((part) => part.trim()).filter(Boolean);
