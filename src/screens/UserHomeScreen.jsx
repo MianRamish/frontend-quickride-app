@@ -1037,9 +1037,9 @@ function UserHomeScreen() {
         </div>
       )}
 
-      <SelectVehicle selectedVehicle={setSelectedVehicle} showPanel={showSelectVehiclePanel} setShowPanel={setShowSelectVehiclePanel} showPreviousPanel={setShowFindTripPanel} showNextPanel={setShowRideDetailsPanel} fare={fare} currency={currency} routeInfo={routeInfo} pricing={farePricing} fareBreakdown={fareBreakdown} />
+      <SelectVehicle selectedVehicle={setSelectedVehicle} showPanel={showSelectVehiclePanel} setShowPanel={setShowSelectVehiclePanel} showPreviousPanel={setShowFindTripPanel} showNextPanel={setShowRideDetailsPanel} fare={fare} currency={currency} routeInfo={routeInfo} />
 
-      <RideDetails pickupLocation={pickupLocation} destinationLocation={destinationLocation} selectedVehicle={selectedVehicle} fare={fare} fareBreakdown={fareBreakdown} farePricing={farePricing} currency={currency} routeInfo={routeInfo} showPanel={showRideDetailsPanel} setShowPanel={setShowRideDetailsPanel} showPreviousPanel={setShowSelectVehiclePanel} createRide={createRide} cancelRide={cancelRide} loading={loading} rideCreated={rideCreated} confirmedRideData={confirmedRideData} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} paymentMethods={paymentMethods} promoCode={promoCode} setPromoCode={setPromoCode} />
+      <RideDetails pickupLocation={pickupLocation} destinationLocation={destinationLocation} selectedVehicle={selectedVehicle} fare={fare} currency={currency} routeInfo={routeInfo} showPanel={showRideDetailsPanel} setShowPanel={setShowRideDetailsPanel} showPreviousPanel={setShowSelectVehiclePanel} createRide={createRide} cancelRide={cancelRide} loading={loading} rideCreated={rideCreated} confirmedRideData={confirmedRideData} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} paymentMethods={paymentMethods} promoCode={promoCode} setPromoCode={setPromoCode} />
 
       {(confirmedRideData || rideCreated) && (
         <div className="fixed fab-stack-nav left-4 right-4 z-[35] mx-auto grid max-w-xl grid-cols-2 gap-3 pointer-events-auto">
