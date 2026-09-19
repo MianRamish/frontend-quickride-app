@@ -55,8 +55,8 @@ function Vehicle({ vehicle, selectedVehicle, fare, currency, pricing, breakdown,
       className="group relative flex w-full items-center gap-3 overflow-hidden rounded-[26px] border border-slate-200 bg-white p-3 text-left shadow-[0_10px_30px_rgba(15,23,42,.055)] transition hover:border-slate-300 active:scale-[0.99]"
     >
       <div className="absolute right-0 top-0 rounded-bl-2xl bg-slate-950 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.1em] text-white">{vehicle.badge}</div>
-      <div className="flex h-[78px] w-[96px] shrink-0 items-center justify-center rounded-[22px] bg-gradient-to-br from-slate-50 to-slate-100">
-        <img src={`/${vehicle.image}`} className="max-h-16 max-w-[88px] object-contain mix-blend-multiply transition group-hover:scale-105" alt={vehicle.name} />
+      <div className="flex h-[70px] w-[78px] shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-slate-50 to-slate-100 min-[390px]:h-[78px] min-[390px]:w-[96px] min-[390px]:rounded-[22px]">
+        <img src={`/${vehicle.image}`} className="max-h-14 max-w-[72px] object-contain mix-blend-multiply transition group-hover:scale-105 min-[390px]:max-h-16 min-[390px]:max-w-[88px]" alt={vehicle.name} />
       </div>
       <div className="min-w-0 flex-1 pr-1">
         <div className="flex items-end justify-between gap-2">
