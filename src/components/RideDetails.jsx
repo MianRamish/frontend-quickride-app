@@ -142,8 +142,8 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
 
   return (
     <>
-      <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet floating-sheet-nav z-40 sheet-scroll sheet-scroll-nav`}>
-        <div className="sheet-handle mb-3" />
+      <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet floating-sheet-nav sheet-frame z-40`}>
+        <div className="sheet-handle mt-4 mb-1" />
 
         {rideCreated && !confirmedRideData ? (
           <div className="absolute inset-0 z-50 overflow-y-auto overscroll-contain bg-[#f7f9fc] px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-5">
@@ -202,6 +202,7 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
           </div>
         ) : null}
 
+        <div className="sheet-body">
         {!rideCreated && !confirmedRideData && (
           <div className="flow-steps mb-4">
             <div className="flow-step flow-step-done">1 Route</div>
@@ -285,7 +286,12 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
 
         {(rideCreated || confirmedRideData) && <div className="mt-4 flex items-start gap-3 rounded-[22px] border border-emerald-100 bg-emerald-50 p-3.5"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white"><Banknote size={18} /></div><div><p className="text-xs font-black text-emerald-950">Cash payment</p><p className="mt-0.5 text-[11px] font-semibold leading-4 text-emerald-800">Pay {rideFare} directly to your driver at trip end. Card remains visible but disabled until a gateway is integrated.</p></div></div>}
 
-        <div className="mt-5">{rideCreated || confirmedRideData ? <Button title="Cancel ride" loading={loading} variant="danger" fun={() => setShowCancelModal(true)} /> : <Button title={routeInfo?.approximate ? `Recheck & confirm • ${rideFare}` : `Confirm • ${rideFare}`} fun={createRide} loading={loading} />}</div>
+        </div>
+        <div className="sheet-fixed-footer">
+          {rideCreated || confirmedRideData
+            ? <Button title="Cancel ride" loading={loading} variant="danger" fun={() => setShowCancelModal(true)} />
+            : <Button title={routeInfo?.approximate ? `Recheck & confirm • ${rideFare}` : `Confirm • ${rideFare}`} fun={createRide} loading={loading} />}
+        </div>
       </div>
 
       {showCancelModal && <div className="modal-backdrop"><div className="modal-sheet"><div className="mb-4 flex items-start justify-between gap-3"><div><p className="mini-label">Cancellation</p><h2 className="text-2xl font-black text-slate-950">Why are you cancelling?</h2><p className="mt-1 text-xs font-semibold text-slate-500">Late cancellations may carry a fee configured by operations.</p></div><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShieldCheck size={19} /></div></div><div className="grid gap-2">{reasons.map((r) => <button key={r.code} className={`rounded-2xl border p-3.5 text-left text-sm font-bold transition ${cancelReason.code === r.code ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"}`} onClick={() => setCancelReason(r)}>{r.text}</button>)}</div><div className="mt-4 grid grid-cols-2 gap-3"><button className="secondary-btn" onClick={() => setShowCancelModal(false)}>Keep ride</button><button className="danger-btn" disabled={!cancelReason.code || loading} onClick={async () => { await cancelRide(cancelReason.code, cancelReason.text); setShowCancelModal(false); }}>Cancel ride</button></div></div></div>}
