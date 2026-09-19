@@ -53,8 +53,8 @@ export const Alert = ({ heading, text, isVisible, onClose, type = "success" }) =
           <div className="min-w-0 flex-1">
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-black text-slate-950">{heading}</p>
-                <p className="mt-1 text-xs font-semibold leading-5 text-slate-600">{text}</p>
+                <p className="break-words text-sm font-black text-slate-950">{heading}</p>
+                <p className="mt-1 break-words text-xs font-semibold leading-5 text-slate-600">{text}</p>
               </div>
               <button
                 type="button"
