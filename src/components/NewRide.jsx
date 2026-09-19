@@ -60,8 +60,9 @@ function NewRide({ rideData, otp, setOtp, showBtn, showPanel, setShowPanel, show
 
   return (
     <>
-      <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet floating-sheet-nav z-40 sheet-scroll sheet-scroll-nav`}>
-        <div className="sheet-handle mb-3" />
+      <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet floating-sheet-nav sheet-frame z-40`}>
+        <div className="sheet-handle mt-4 mb-1" />
+        <div className="sheet-body">
         <RideStatusTimeline status={status} />
 
         <div className="mt-4 mb-4 overflow-hidden rounded-[28px] bg-[#07111f] p-4 text-white shadow-xl">
@@ -87,7 +88,8 @@ function NewRide({ rideData, otp, setOtp, showBtn, showPanel, setShowPanel, show
 
         {paymentMethod === "cash" && showBtn === "end-ride" && <div className="mt-3 flex items-start gap-3 rounded-[22px] border border-emerald-100 bg-emerald-50 p-3.5"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white"><Banknote size={18} /></div><div><p className="text-xs font-black text-emerald-950">Cash collection required</p><p className="mt-0.5 text-[11px] font-semibold leading-4 text-emerald-800">Collect {formatMoney(rideData?.fare, rideData?.currency || "NGN")} before completing this trip.</p></div></div>}
 
-        <div className="mt-5 space-y-3">
+        </div>
+        <div className="sheet-fixed-footer space-y-3">
           {showBtn === "accept" ? <div className="grid grid-cols-2 gap-3"><Button title="Reject" loading={loading} fun={ignoreRide} variant="secondary" /><Button title="Accept ride" fun={acceptRide} loading={loading} classes="bg-emerald-600" /></div>
           : showBtn === "arriving" ? <Button title="Start heading to pickup" icon={<Navigation size={17} />} loading={loading} fun={markArriving} classes="bg-emerald-600" />
           : showBtn === "arrived" ? <Button title="I've arrived at pickup" icon={<MapPinCheck size={17} />} loading={loading} fun={markArrived} classes="bg-emerald-600" />
