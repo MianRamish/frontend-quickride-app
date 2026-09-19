@@ -89,6 +89,8 @@ function UserHomeScreen() {
   const [isUsingLivePickup, setIsUsingLivePickup] = useState(false);
   const [serviceAreaStatus, setServiceAreaStatus] = useState("unknown");
   const [driverLiveAt, setDriverLiveAt] = useState(null);
+  const [pickupAddressDetails, setPickupAddressDetails] = useState(null);
+  const [destinationAddressDetails, setDestinationAddressDetails] = useState(null);
   const suggestionRequestId = useRef(0);
 
   const [showFindTripPanel, setShowFindTripPanel] = useState(true);
@@ -162,6 +164,18 @@ function UserHomeScreen() {
     const updated = [place, ...recentPlaces.filter((item) => item !== place)].slice(0, 4);
     setRecentPlaces(updated);
     localStorage.setItem("recentPlaces", JSON.stringify(updated));
+  };
+
+  const resolveLocationDetails = async (lat, lng) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_SERVER_URL}/map/reverse-geocode?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`,
+        { headers: { token } }
+      );
+      return response.data || null;
+    } catch (_) {
+      return null;
+    }
   };
 
   const selectLocationSuggestion = (suggestion, inputType = selectedInput) => {
@@ -329,6 +343,8 @@ function UserHomeScreen() {
     setRouteInfo({ distanceText: "", durationText: "" });
     setPickupCoords(null);
     setDestinationCoords(null);
+    setPickupAddressDetails(null);
+    setDestinationAddressDetails(null);
     setShowRideDetailsPanel(false);
     setShowSelectVehiclePanel(false);
     setShowFindTripPanel(true);
@@ -493,7 +509,9 @@ function UserHomeScreen() {
       setPickupCoords({ lat, lng });
       try {
         const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/map/reverse-geocode?lat=${lat}&lng=${lng}`, { headers: { token } });
-        const address = response.data?.address || response.data?.display_name || `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+        const details = response.data || null;
+        const address = details?.address || details?.display_name || `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+        setPickupAddressDetails(details);
         setPickupLocation(address);
         setPickupConfirmed(true);
         setIsUsingLivePickup(true);
@@ -813,11 +831,12 @@ function UserHomeScreen() {
                   setPickupLocation(value);
                   setPickupConfirmed(false);
                   setPickupCoords(null);
+                  setPickupAddressDetails(null);
                   setIsUsingLivePickup(false);
                   setServiceAreaStatus("unknown");
                   setMapNotice("");
                 }}
-                onSelectSuggestion={(place) => {
+                onSelectSuggestion={async (place) => {
                   setPickupLocation(place.address);
                   setPickupCoords({ lat: place.lat, lng: place.lng });
                   setPickupConfirmed(true);
@@ -825,6 +844,11 @@ function UserHomeScreen() {
                   setServiceAreaStatus("inside");
                   setMapNotice("");
                   rememberPlace(place.address);
+                  const details = await resolveLocationDetails(place.lat, place.lng);
+                  if (details) {
+                    setPickupAddressDetails(details);
+                    if (details.address) setPickupLocation(details.address);
+                  }
                 }}
               />
             </div>
@@ -854,14 +878,20 @@ function UserHomeScreen() {
                   setDestinationLocation(value);
                   setDestinationConfirmed(false);
                   setDestinationCoords(null);
+                  setDestinationAddressDetails(null);
                   setMapNotice("");
                 }}
-                onSelectSuggestion={(place) => {
+                onSelectSuggestion={async (place) => {
                   setDestinationLocation(place.address);
                   setDestinationCoords({ lat: place.lat, lng: place.lng });
                   setDestinationConfirmed(true);
                   setMapNotice("");
                   rememberPlace(place.address);
+                  const details = await resolveLocationDetails(place.lat, place.lng);
+                  if (details) {
+                    setDestinationAddressDetails(details);
+                    if (details.address) setDestinationLocation(details.address);
+                  }
                 }}
               />
             </div>
@@ -889,6 +919,13 @@ function UserHomeScreen() {
               <button type="button" onClick={useCurrentLocationAsPickup} disabled={locationActionLoading || isUsingLivePickup} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] border border-emerald-100 bg-emerald-50 px-3 text-xs font-black text-emerald-800 disabled:opacity-60"><Navigation size={15} /> {locationActionLoading ? "Finding your location…" : isUsingLivePickup ? "Live location active" : "Use my current location for pickup"}</button>
               {isUsingLivePickup ? <button type="button" onClick={stopLivePickup} className="min-h-11 rounded-[18px] border border-slate-200 bg-white px-3 text-xs font-black text-slate-600">Stop</button> : null}
             </div>
+
+            {(pickupAddressDetails || destinationAddressDetails) ? (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {pickupAddressDetails ? <LocationDetailCard label="Pickup details" details={pickupAddressDetails} /> : null}
+                {destinationAddressDetails ? <LocationDetailCard label="Drop-off details" details={destinationAddressDetails} /> : null}
+              </div>
+            ) : null}
           </div>
 
           {isLocationSearching ? (
@@ -1077,6 +1114,19 @@ function UserHomeScreen() {
       )}
 
       <MobileBottomNav userType="user" />
+    </div>
+  );
+}
+
+function LocationDetailCard({ label, details }) {
+  const locality = [details.area, details.city, details.state].filter(Boolean).join(", ");
+  return (
+    <div className="rounded-[18px] border border-slate-200 bg-white px-3 py-3 shadow-sm">
+      <p className="text-[9px] font-black uppercase tracking-[0.13em] text-slate-400">{label}</p>
+      <p className="mt-1 text-xs font-black leading-4 text-slate-900">{details.street || details.address || "Resolved location"}</p>
+      {details.landmark ? <p className="mt-1 text-[10px] font-bold text-emerald-700">Near {details.landmark}{Number.isFinite(Number(details.landmarkDistanceKm)) ? ` • ${details.landmarkDistanceKm} km` : ""}</p> : null}
+      {locality ? <p className="mt-1 text-[10px] font-semibold leading-4 text-slate-500">{locality}</p> : null}
+      {details.postalCode ? <p className="mt-1 text-[9px] font-black uppercase tracking-wide text-slate-400">Postal code {details.postalCode}</p> : null}
     </div>
   );
 }
