@@ -138,7 +138,7 @@ export default function LiveMap({ height = 260, center, markers = [], routeCoord
         attributionControl={true}
         zoomControl={false}
       >
-        <ZoomControl position="bottomright" />
+        <ZoomControl position="topright" />
         {onMapClick ? <MapTapHandler onMapClick={onMapClick} /> : null}
         <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {Array.isArray(routeCoords) && routeCoords.length > 1 && (
