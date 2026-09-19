@@ -14,6 +14,7 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
   const token = localStorage.getItem("token");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState({ code: "", text: "" });
+  const [customCancelReason, setCustomCancelReason] = useState("");
   const [promoInput, setPromoInput] = useState(promoCode || "");
   const [promoResult, setPromoResult] = useState(null);
   const [promoMessage, setPromoMessage] = useState("");
@@ -187,7 +188,16 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
                 </div>
               </div>
 
-              <button type="button" className="w-full rounded-2xl border border-red-100 bg-red-50 px-4 py-3.5 text-sm font-black text-red-600" onClick={() => cancelRide?.("CHANGE_OF_PLANS", "Passenger cancelled while searching for a driver")} disabled={loading}>
+              <button
+                type="button"
+                className="w-full rounded-2xl border border-red-100 bg-red-50 px-4 py-3.5 text-sm font-black text-red-600"
+                onClick={() => {
+                  setCancelReason({ code: "", text: "" });
+                  setCustomCancelReason("");
+                  setShowCancelModal(true);
+                }}
+                disabled={loading}
+              >
                 Cancel driver search
               </button>
             </div>
@@ -256,12 +266,16 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
         </div>
         <div className="sheet-fixed-footer">
           {rideCreated || confirmedRideData
-            ? <Button title="Cancel ride" loading={loading} variant="danger" fun={() => setShowCancelModal(true)} />
+            ? <Button title="Cancel ride" loading={loading} variant="danger" fun={() => {
+                setCancelReason({ code: "", text: "" });
+                setCustomCancelReason("");
+                setShowCancelModal(true);
+              }} />
             : <Button title={routeInfo?.approximate ? `Recheck & confirm • ${rideFare}` : `Confirm • ${rideFare}`} fun={createRide} loading={loading} />}
         </div>
       </div>
 
-      {showCancelModal && <div className="modal-backdrop"><div className="modal-sheet"><div className="mb-4 flex items-start justify-between gap-3"><div><p className="mini-label">Cancellation</p><h2 className="text-2xl font-black text-slate-950">Why are you cancelling?</h2><p className="mt-1 text-xs font-semibold text-slate-500">Late cancellations may carry a fee configured by operations.</p></div><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShieldCheck size={19} /></div></div><div className="grid gap-2">{reasons.map((r) => <button key={r.code} className={`rounded-2xl border p-3.5 text-left text-sm font-bold transition ${cancelReason.code === r.code ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"}`} onClick={() => setCancelReason(r)}>{r.text}</button>)}</div><div className="mt-4 grid grid-cols-2 gap-3"><button className="secondary-btn" onClick={() => setShowCancelModal(false)}>Keep ride</button><button className="danger-btn" disabled={!cancelReason.code || loading} onClick={async () => { await cancelRide(cancelReason.code, cancelReason.text); setShowCancelModal(false); }}>Cancel ride</button></div></div></div>}
+      {showCancelModal && <div className="modal-backdrop"><div className="modal-sheet"><div className="mb-4 flex items-start justify-between gap-3"><div><p className="mini-label">Cancellation</p><h2 className="text-2xl font-black text-slate-950">Why are you cancelling?</h2><p className="mt-1 text-xs font-semibold text-slate-500">Select a reason before cancelling. Late cancellations may carry a fee configured by operations.</p></div><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShieldCheck size={19} /></div></div><div className="grid gap-2">{reasons.map((r) => <button key={r.code} type="button" className={`rounded-2xl border p-3.5 text-left text-sm font-bold transition ${cancelReason.code === r.code ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"}`} onClick={() => { setCancelReason(r); if (r.code !== "OTHER") setCustomCancelReason(""); }}>{r.text}</button>)}</div>{cancelReason.code === "OTHER" ? <div className="mt-3"><label className="mini-label" htmlFor="cancel-other-reason">Tell us why</label><textarea id="cancel-other-reason" value={customCancelReason} onChange={(e) => setCustomCancelReason(e.target.value)} maxLength={200} rows={3} placeholder="Enter your cancellation reason" className="input-box mt-2 min-h-[88px] resize-none" /></div> : null}<div className="mt-4 grid grid-cols-2 gap-3"><button type="button" className="secondary-btn" disabled={loading} onClick={() => setShowCancelModal(false)}>Keep ride</button><button type="button" className="danger-btn" disabled={!cancelReason.code || (cancelReason.code === "OTHER" && customCancelReason.trim().length < 3) || loading} onClick={async () => { const reasonText = cancelReason.code === "OTHER" ? customCancelReason.trim() : cancelReason.text; const cancelled = await cancelRide(cancelReason.code, reasonText); if (cancelled) { setShowCancelModal(false); setCancelReason({ code: "", text: "" }); setCustomCancelReason(""); } }}>{loading ? "Cancelling…" : "Confirm cancellation"}</button></div></div></div>}
     </>
   );
 }
