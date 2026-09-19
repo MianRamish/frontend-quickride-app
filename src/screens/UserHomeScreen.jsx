@@ -49,7 +49,12 @@ function UserHomeScreen() {
   const [destinationConfirmed, setDestinationConfirmed] = useState(false);
   const [recentPlaces, setRecentPlaces] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("recentPlaces") || "[]").slice(0, 4);
+      const stored = JSON.parse(localStorage.getItem("recentPlaces") || "[]");
+      const nigeriaOnly = Array.isArray(stored)
+        ? stored.filter((place) => /(^|,|\s)nigeria(?:\s|,|$)/i.test(String(place || ""))).slice(0, 4)
+        : [];
+      localStorage.setItem("recentPlaces", JSON.stringify(nigeriaOnly));
+      return nigeriaOnly;
     } catch {
       return [];
     }
@@ -159,6 +164,7 @@ function UserHomeScreen() {
   };
 
   const rememberPlace = (place) => {
+    if (!/(^|,|\s)nigeria(?:\s|,|$)/i.test(String(place || ""))) return;
     const updated = [place, ...recentPlaces.filter((item) => item !== place)].slice(0, 4);
     setRecentPlaces(updated);
     localStorage.setItem("recentPlaces", JSON.stringify(updated));
@@ -557,7 +563,12 @@ function UserHomeScreen() {
       axios.get(`${import.meta.env.VITE_SERVER_URL}/user/saved-places`, { headers: { token } }),
       axios.get(`${import.meta.env.VITE_SERVER_URL}/ride/active`, { headers: { token } }),
     ]).then(([placesResult, activeResult]) => {
-      if (placesResult.status === "fulfilled") setSavedPlaces(placesResult.value.data || []);
+      if (placesResult.status === "fulfilled") {
+        const places = Array.isArray(placesResult.value.data) ? placesResult.value.data : [];
+        setSavedPlaces(
+          places.filter((place) => /(^|,|\s)nigeria(?:\s|,|$)/i.test(String(place?.address || "")))
+        );
+      }
       if (activeResult.status === "fulfilled" && activeResult.value.data?._id) {
         const ride = activeResult.value.data;
         setConfirmedRideData(ride.captain ? ride : null);
