@@ -74,8 +74,6 @@ function UserHomeScreen() {
   const [destinationLocation, setDestinationLocation] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("car");
   const [fare, setFare] = useState({ car: 0, bike: 0 });
-  const [farePricing, setFarePricing] = useState(null);
-  const [fareBreakdown, setFareBreakdown] = useState(null);
   const [currency, setCurrency] = useState("NGN");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentMethods, setPaymentMethods] = useState([
@@ -231,9 +229,7 @@ function UserHomeScreen() {
         { headers: { token } }
       );
       setFare(response.data.fare || { car: 0, bike: 0 });
-      setFarePricing(response.data.pricing || null);
       setServiceAreaStatus("inside");
-      setFareBreakdown(response.data.fareBreakdown || null);
       setCurrency(response.data.market?.currency || "NGN");
       const distanceTime = response.data.distanceTime || {};
       setRouteInfo({
@@ -442,8 +438,6 @@ function UserHomeScreen() {
     setSuggestionLoading(false);
     setSelectedVehicle("car");
     setFare({ car: 0, bike: 0 });
-    setFarePricing(null);
-    setFareBreakdown(null);
     setPickupCoords(null);
     setDestinationCoords(null);
     setIsUsingLivePickup(false);
