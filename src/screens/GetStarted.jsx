@@ -18,7 +18,7 @@ import heroImage from "/get_started_illustration.jpg";
 
 const passengerFeatures = [
   { icon: MapPinned, title: "Live driver tracking", text: "Follow your assigned driver on the map from pickup to trip completion." },
-  { icon: Banknote, title: "Transparent pricing", text: "See distance, time and fare breakdown before you confirm a ride." },
+  { icon: Banknote, title: "Upfront fare", text: "See your estimated fare, distance and trip time before you confirm a ride." },
   { icon: ShieldCheck, title: "Safety built in", text: "Trip PIN, emergency support, complaints and ride sharing stay close at hand." },
 ];
 
@@ -107,7 +107,7 @@ function GetStarted() {
 
             <div className="mt-7 grid max-w-xl grid-cols-3 gap-2">
               <TrustStat value="Live" label="Driver location" icon={Navigation} />
-              <TrustStat value="Clear" label="Fare breakdown" icon={Banknote} />
+              <TrustStat value="Upfront" label="Estimated fare" icon={Banknote} />
               <TrustStat value="Built-in" label="Safety tools" icon={ShieldCheck} />
             </div>
 
@@ -153,8 +153,8 @@ function GetStarted() {
             </div>
 
             <div className="absolute -left-5 top-[29%] hidden w-[150px] rounded-[22px] border border-white/75 bg-white/95 p-3 text-slate-950 shadow-2xl sm:block">
-              <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Banknote size={15} /></span><span className="text-[10px] font-black">Fare breakdown</span></div>
-              <div className="mt-2 space-y-1 text-[9px] font-bold text-slate-400"><p className="flex justify-between"><span>Base</span><span>₦800</span></p><p className="flex justify-between"><span>Distance</span><span>₦2,420</span></p><p className="flex justify-between border-t border-slate-100 pt-1 text-slate-700"><span>Total</span><span>₦3,220</span></p></div>
+              <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Banknote size={15} /></span><span className="text-[10px] font-black">Upfront fare</span></div>
+              <div className="mt-2"><p className="text-[9px] font-bold text-slate-400">Estimated before booking</p><p className="mt-1 text-lg font-black text-slate-900">₦3,220</p></div>
             </div>
 
             <div className="absolute -right-5 top-[16%] hidden rounded-[22px] border border-white/75 bg-white/95 p-3 text-slate-950 shadow-2xl sm:block">
@@ -187,7 +187,7 @@ function GetStarted() {
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <Step number="01" icon={MapPinned} title="Choose locations" text="Search Nigerian places with autocomplete or use your current GPS pickup." />
-                <Step number="02" icon={Banknote} title="See your fare" text="Compare car and bike prices with the full pricing breakdown." />
+                <Step number="02" icon={Banknote} title="See your fare" text="Compare car and bike estimates before choosing your ride." />
                 <Step number="03" icon={Navigation} title="Follow your driver" text="After acceptance, the assigned vehicle moves live on your trip map." />
               </div>
             </section>
