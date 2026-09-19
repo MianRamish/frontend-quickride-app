@@ -142,11 +142,11 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
 
   return (
     <>
-      <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet z-40 sheet-scroll`}>
+      <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet floating-sheet-nav z-40 sheet-scroll sheet-scroll-nav`}>
         <div className="sheet-handle mb-3" />
 
         {rideCreated && !confirmedRideData ? (
-          <div className="absolute inset-0 z-50 overflow-y-auto bg-[#f7f9fc] px-4 pb-6 pt-6">
+          <div className="absolute inset-0 z-50 overflow-y-auto overscroll-contain bg-[#f7f9fc] px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-5">
             <div className="mx-auto flex min-h-full max-w-xl flex-col">
               <div className="mx-auto h-1 w-12 rounded-full bg-slate-200" />
 
