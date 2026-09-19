@@ -23,6 +23,21 @@ export default function NotificationBell({ userType = "user", dark = true }) {
 
   useEffect(() => { load(); }, [endpoint]);
   useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.serviceWorker) return undefined;
+    const onServiceWorkerMessage = (event) => {
+      if (event.data?.type !== "quickride-push") return;
+      const notice = event.data?.notification || {};
+      setForegroundNotice({
+        title: notice.title || "QuickRide update",
+        body: notice.body || "",
+        data: notice.data || {},
+      });
+    };
+    navigator.serviceWorker.addEventListener("message", onServiceWorkerMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onServiceWorkerMessage);
+  }, []);
+
+  useEffect(() => {
     if (!socket) return;
     const onNotification = (item) => {
       setItems((prev) => [item, ...prev.filter((x) => x._id !== item._id)]);
