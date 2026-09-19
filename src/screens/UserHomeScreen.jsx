@@ -513,11 +513,18 @@ function UserHomeScreen() {
         const address = details?.address || details?.display_name || `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
         setPickupAddressDetails(details);
         setPickupLocation(address);
-        setPickupConfirmed(true);
-        setIsUsingLivePickup(true);
-        setServiceAreaStatus("inside");
-        rememberPlace(address);
-        setMapNotice("Live GPS pickup is active. Your pickup coordinates will stay updated until you choose another location.");
+        if (details?.serviceAvailable === false) {
+          setPickupConfirmed(false);
+          setIsUsingLivePickup(false);
+          setServiceAreaStatus("outside");
+          setMapNotice(`We found your location, but QuickRide booking is currently limited to ${details?.serviceArea || "Nigeria"}.`);
+        } else {
+          setPickupConfirmed(true);
+          setIsUsingLivePickup(true);
+          setServiceAreaStatus("inside");
+          rememberPlace(address);
+          setMapNotice("Live GPS pickup is active. Your pickup coordinates will stay updated until you choose another location.");
+        }
       } catch (error) {
         const address = `Current location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
         const serviceAreaMessage = error?.response?.data?.code === "OUTSIDE_SERVICE_AREA"
