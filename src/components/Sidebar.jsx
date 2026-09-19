@@ -68,9 +68,9 @@ function Sidebar() {
 
       {showSidebar && (
         <>
-          <button type="button" className="fixed inset-0 z-[69] bg-slate-950/55 backdrop-blur-sm" onClick={closeSidebar} aria-label="Close profile panel" />
+          <button type="button" className="fixed inset-0 z-[89] bg-slate-950/55 backdrop-blur-sm" onClick={closeSidebar} aria-label="Close profile panel" />
 
-          <aside className="fixed bottom-0 right-0 top-0 z-[70] flex w-[min(90vw,390px)] flex-col overflow-hidden rounded-l-[34px] bg-[#f6f8fb] text-slate-950 shadow-[-30px_0_80px_rgba(2,8,23,.24)]">
+          <aside className="fixed bottom-0 right-0 top-0 z-[90] flex w-[min(90vw,390px)] flex-col overflow-hidden rounded-l-[34px] bg-[#f6f8fb] text-slate-950 shadow-[-30px_0_80px_rgba(2,8,23,.24)]">
             <div className="relative overflow-hidden bg-[#07111f] px-5 pb-7 pt-[calc(env(safe-area-inset-top)+18px)] text-white">
               <div className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-emerald-400/20 blur-2xl" />
               <div className="absolute -bottom-20 -left-10 h-44 w-44 rounded-full bg-blue-500/15 blur-2xl" />
