@@ -19,8 +19,8 @@ export default function MobileBottomNav({ userType = "user" }) {
       ];
 
   return (
-    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-[70] mx-auto max-w-xl px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2">
-      <div className="rounded-[26px] border border-slate-200/80 bg-white/96 p-2 shadow-[0_-14px_40px_rgba(15,23,42,.10)] backdrop-blur-xl">
+    <nav className="mobile-bottom-nav pointer-events-none fixed bottom-0 left-0 right-0 z-[70] mx-auto max-w-xl px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2">
+      <div className="pointer-events-auto rounded-[26px] border border-slate-200/80 bg-white/96 p-2 shadow-[0_-14px_40px_rgba(15,23,42,.10)] backdrop-blur-xl">
         <div className={`grid ${isCaptain ? "grid-cols-3" : "grid-cols-4"} gap-1.5`}>
           {items.map(({ label, icon: Icon, path }) => {
             const active = location.pathname === path;
