@@ -45,14 +45,14 @@ function LocationSuggestions({
   token,
   inputId = "location",
   label = "",
-  placeholder = "Search area, street or landmark",
+  placeholder = "House number, street, landmark or area",
   userLocation = null,
   confirmed = false,
   variant = "route",
   minChars = 3,
   disabled = false,
   autoFocus = false,
-  helperText = "Choose a suggestion to confirm the exact location.",
+  helperText = "Search by house number, street, road, landmark or area, then choose the exact result.",
 }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -247,7 +247,7 @@ function LocationSuggestions({
             <Search size={17} className="mt-0.5 shrink-0 text-slate-400" />
             <div>
               <p className="text-xs font-black text-slate-800">{searchError || "No matching location found"}</p>
-              <p className="mt-1 text-[10px] font-semibold leading-4 text-slate-500">Try an area, street, landmark, university, airport or city in Nigeria.</p>
+              <p className="mt-1 text-[10px] font-semibold leading-4 text-slate-500">Try a house number with street, road, landmark, estate, area or city in Nigeria.</p>
             </div>
           </div>
         ) : null}
