@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Banknote, ChevronDown, Clock3, PhoneCall, SendHorizontal, Share2, ShieldCheck, Sparkles, Star, Tag } from "lucide-react";
+import { AlertTriangle, Banknote, CarFront, ChevronDown, Clock3, MapPin, PhoneCall, SendHorizontal, Share2, ShieldCheck, Sparkles, Star, Tag } from "lucide-react";
 import { formatMoney } from "../utils/formatMoney";
 import Button from "./Button";
 import PaymentMethodSelector from "./PaymentMethodSelector";
@@ -19,6 +19,7 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
   const [promoMessage, setPromoMessage] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
   const [waitingSeconds, setWaitingSeconds] = useState(0);
+  const [searchSeconds, setSearchSeconds] = useState(0);
 
   const reasons = [
     { code: "DRIVER_LATE", text: "Driver is taking too long" },
@@ -48,6 +49,18 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
   const status = confirmedRideData?.status || (rideCreated ? "pending" : "pending");
 
   useEffect(() => {
+    if (!rideCreated || confirmedRideData) {
+      setSearchSeconds(0);
+      return undefined;
+    }
+    const startedAt = Date.now();
+    const tick = () => setSearchSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [rideCreated, confirmedRideData]);
+
+  useEffect(() => {
     if (status !== "arrived" || !confirmedRideData?.arrivedAt) {
       setWaitingSeconds(0);
       return undefined;
@@ -63,6 +76,18 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
     const secs = waitingSeconds % 60;
     return `${mins}:${String(secs).padStart(2, "0")}`;
   }, [waitingSeconds]);
+
+  const searchTimeText = useMemo(() => {
+    const mins = Math.floor(searchSeconds / 60);
+    const secs = searchSeconds % 60;
+    return `${mins}:${String(secs).padStart(2, "0")}`;
+  }, [searchSeconds]);
+
+  const searchStatusText = searchSeconds < 20
+    ? "Contacting nearby available drivers"
+    : searchSeconds < 45
+      ? "Your request is still being offered to nearby drivers"
+      : "Checking additional available drivers for your trip";
 
   const applyPromo = async () => {
     const code = promoInput.trim().toUpperCase();
@@ -119,6 +144,63 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
     <>
       <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet z-40 sheet-scroll`}>
         <div className="sheet-handle mb-3" />
+
+        {rideCreated && !confirmedRideData ? (
+          <div className="absolute inset-0 z-50 overflow-y-auto bg-[#f7f9fc] px-4 pb-6 pt-6">
+            <div className="mx-auto flex min-h-full max-w-xl flex-col">
+              <div className="mx-auto h-1 w-12 rounded-full bg-slate-200" />
+
+              <div className="flex flex-1 flex-col items-center justify-center py-7 text-center">
+                <div className="relative flex h-28 w-28 items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border border-emerald-200 bg-emerald-50" />
+                  <div className="absolute inset-3 animate-ping rounded-full border border-emerald-300/70" />
+                  <div className="absolute inset-6 animate-pulse rounded-full bg-emerald-600/10" />
+                  <div className="relative flex h-16 w-16 items-center justify-center rounded-[22px] bg-slate-950 text-white shadow-xl">
+                    <CarFront size={28} />
+                  </div>
+                </div>
+
+                <p className="mt-5 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Driver search active</p>
+                <h2 className="mt-2 text-3xl font-black tracking-[-0.045em] text-slate-950">Finding your driver</h2>
+                <p className="mt-2 max-w-sm text-sm font-semibold leading-6 text-slate-500">{searchStatusText}.</p>
+
+                <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-black text-slate-700 shadow-sm">
+                  <Clock3 size={14} className="text-emerald-600" /> Searching {searchTimeText}
+                </div>
+
+                <div className="mt-6 w-full rounded-[28px] border border-slate-200 bg-white p-4 text-left shadow-[0_16px_40px_rgba(15,23,42,.06)]">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="mini-label">Your request</p>
+                      <h3 className="mt-1 text-base font-black text-slate-950">{selectedVehicle === "bike" ? "Bike ride" : "Car ride"} • {rideFare}</h3>
+                    </div>
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-wide text-emerald-700">Searching</span>
+                  </div>
+
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><MapPin size={15} /></span>
+                      <div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">Pickup</p><p className="mt-0.5 text-xs font-bold leading-5 text-slate-800">{pickupLocation}</p></div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700"><MapPin size={15} /></span>
+                      <div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">Drop-off</p><p className="mt-0.5 text-xs font-bold leading-5 text-slate-800">{destinationLocation}</p></div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-start gap-2 rounded-2xl bg-slate-50 px-3 py-3 text-[10px] font-semibold leading-4 text-slate-500">
+                    <ShieldCheck size={15} className="mt-0.5 shrink-0 text-emerald-600" />
+                    Keep QuickRide open while we match your request. You’ll automatically see the driver and live vehicle location when one accepts.
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" className="w-full rounded-2xl border border-red-100 bg-red-50 px-4 py-3.5 text-sm font-black text-red-600" onClick={() => cancelRide?.("CHANGE_OF_PLANS", "Passenger cancelled while searching for a driver")} disabled={loading}>
+                Cancel driver search
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {!rideCreated && !confirmedRideData && (
           <div className="flow-steps mb-4">
