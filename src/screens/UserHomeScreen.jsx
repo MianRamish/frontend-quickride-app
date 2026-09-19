@@ -793,7 +793,7 @@ function UserHomeScreen() {
           </div>
         </div>
         {mapNotice && (
-          <div className="absolute bottom-3 left-6 right-6 z-[501] rounded-2xl border border-white/70 bg-white/95 px-3 py-2.5 text-[11px] font-semibold leading-4 text-slate-600 shadow-xl backdrop-blur">
+          <div className="absolute left-3 right-3 top-[52px] z-[501] max-h-[72px] overflow-y-auto rounded-2xl border border-white/70 bg-white/95 px-3 py-2.5 text-[11px] font-semibold leading-4 text-slate-600 shadow-xl backdrop-blur">
             {mapNotice}
           </div>
         )}
