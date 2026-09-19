@@ -181,7 +181,7 @@ function GetStarted() {
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-600">How QuickRide works</p>
                 <h2 className="mt-2 max-w-md text-3xl font-black tracking-[-0.04em] text-slate-950 sm:text-4xl">From search to pickup without the guesswork.</h2>
-                <p className="mt-3 max-w-md text-sm font-semibold leading-6 text-slate-500">Autocomplete helps you select exact locations, pricing is calculated before confirmation, and your assigned driver appears live on the map.</p>
+                <p className="mt-3 max-w-md text-sm font-semibold leading-6 text-slate-500">Autocomplete helps you select exact locations, your estimated fare is shown before confirmation, and your assigned driver appears live on the map.</p>
                 <button type="button" onClick={() => navigate("/signup")} className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-black text-white">Start riding <ArrowRight size={16} /></button>
               </div>
 
