@@ -6,7 +6,7 @@ const vehicles = [
   { id: 2, name: "QuickRide Bike", description: "Fast and affordable solo ride", type: "bike", image: "bike.webp", seats: "1", eta: "Budget", badge: "Value" },
 ];
 
-function SelectVehicle({ selectedVehicle, showPanel, setShowPanel, showPreviousPanel, showNextPanel, fare, currency = "NGN", routeInfo = {}, pricing = null, fareBreakdown = null }) {
+function SelectVehicle({ selectedVehicle, showPanel, setShowPanel, showPreviousPanel, showNextPanel, fare, currency = "NGN", routeInfo = {} }) {
   return (
     <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet floating-sheet-nav z-40 sheet-scroll sheet-scroll-nav`}>
       <div className="sheet-handle mb-3" />
@@ -39,7 +39,7 @@ function SelectVehicle({ selectedVehicle, showPanel, setShowPanel, showPreviousP
 
       <div className="space-y-3 pb-2">
         {vehicles.map((vehicle) => (
-          <Vehicle key={vehicle.id} vehicle={vehicle} fare={fare} currency={currency} pricing={pricing?.[vehicle.type]} breakdown={fareBreakdown?.[vehicle.type]} selectedVehicle={selectedVehicle} setShowPanel={setShowPanel} showNextPanel={showNextPanel} />
+          <Vehicle key={vehicle.id} vehicle={vehicle} fare={fare} currency={currency} selectedVehicle={selectedVehicle} setShowPanel={setShowPanel} showNextPanel={showNextPanel} />
         ))}
       </div>
 
@@ -48,7 +48,7 @@ function SelectVehicle({ selectedVehicle, showPanel, setShowPanel, showPreviousP
   );
 }
 
-function Vehicle({ vehicle, selectedVehicle, fare, currency, pricing, breakdown, setShowPanel, showNextPanel }) {
+function Vehicle({ vehicle, selectedVehicle, fare, currency, setShowPanel, showNextPanel }) {
   return (
     <button
       onClick={() => { selectedVehicle(vehicle.type); setShowPanel(false); showNextPanel(true); }}
@@ -68,17 +68,9 @@ function Vehicle({ vehicle, selectedVehicle, fare, currency, pricing, breakdown,
           <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1"><Clock3 size={11} /> {vehicle.eta}</span>
           <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-emerald-700"><Sparkles size={11} /> Cash</span>
         </div>
-        {pricing ? (
-          <p className="mt-2 text-[10px] font-bold leading-4 text-slate-400">
-            {formatMoney(pricing.base || 0, currency)} base + {formatMoney(pricing.perKm || 0, currency)}/km + {formatMoney(pricing.perMinute || 0, currency)}/min
-            {Number(pricing.minimum || 0) > 0 ? ` • minimum ${formatMoney(pricing.minimum, currency)}` : ""}
-          </p>
-        ) : null}
-        {breakdown ? (
-          <p className="mt-1 text-[10px] font-black text-emerald-700">
-            Trip estimate: {breakdown.kilometres} km • {breakdown.minutes} min • calculated fare {formatMoney(breakdown.total || fare?.[vehicle.type] || 0, currency)}
-          </p>
-        ) : null}
+        <p className="mt-2 text-[10px] font-bold leading-4 text-slate-400">
+          Estimated fare shown upfront. Final trip details remain visible before confirmation.
+        </p>
       </div>
     </button>
   );
