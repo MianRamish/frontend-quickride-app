@@ -43,7 +43,7 @@ export const Alert = ({ heading, text, isVisible, onClose, type = "success" }) =
     <div className="toast-viewport" aria-live="assertive" role="status">
       <div
         className={`toast-card transition-all duration-200 ${
-          isAnimating ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
+          isAnimating ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
         }`}
       >
         <div className="flex items-start gap-3">
