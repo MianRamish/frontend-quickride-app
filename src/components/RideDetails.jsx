@@ -10,7 +10,7 @@ function shortAddress(value) {
   return (value || "").split(",")[0] || value || "Not selected";
 }
 
-function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, fare, fareBreakdown = null, farePricing = null, currency = "NGN", routeInfo = {}, showPanel, setShowPanel, showPreviousPanel, createRide, cancelRide, loading, rideCreated, confirmedRideData, paymentMethod = "cash", setPaymentMethod, paymentMethods = [], promoCode = "", setPromoCode }) {
+function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, fare, currency = "NGN", routeInfo = {}, showPanel, setShowPanel, showPreviousPanel, createRide, cancelRide, loading, rideCreated, confirmedRideData, paymentMethod = "cash", setPaymentMethod, paymentMethods = [], promoCode = "", setPromoCode }) {
   const token = localStorage.getItem("token");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState({ code: "", text: "" });
@@ -38,14 +38,6 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
   const baseFare = Number(fare?.[selectedVehicle] || 0);
   const displayFare = confirmedRideData?.fare ?? promoResult?.finalFare ?? baseFare;
   const rideFare = formatMoney(displayFare, currency);
-  const selectedBreakdown = fareBreakdown?.[selectedVehicle] || null;
-  const selectedPricing = farePricing?.[selectedVehicle] || null;
-  const breakdownSubtotal = selectedBreakdown
-    ? Number(selectedBreakdown.base || 0) + Number(selectedBreakdown.distanceCharge || 0) + Number(selectedBreakdown.timeCharge || 0)
-    : 0;
-  const minimumAdjustment = selectedBreakdown
-    ? Math.max(0, Number(selectedBreakdown.total || 0) - breakdownSubtotal)
-    : 0;
   const status = confirmedRideData?.status || (rideCreated ? "pending" : "pending");
 
   useEffect(() => {
@@ -248,31 +240,6 @@ function RideDetails({ pickupLocation, destinationLocation, selectedVehicle, far
           <div><p className="mini-label">{routeInfo?.approximate ? "Approximate fare" : promoResult?.discount ? "Discounted fare" : "Estimated fare"}</p><h3 className="mt-1 text-2xl font-black tracking-tight text-slate-950">{rideFare}</h3>{promoResult?.discount ? <p className="mt-1 text-[11px] font-black text-emerald-700">Saved {formatMoney(promoResult.discount, currency)} with {promoResult.code}</p> : <p className="mt-1 text-[11px] font-semibold text-slate-500">{routeInfo?.approximate ? "Live route pricing will be checked again before booking." : "Cash is paid directly to your driver."}</p>}{(routeInfo?.distanceText || routeInfo?.durationText) ? <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400">{[routeInfo.distanceText, routeInfo.durationText].filter(Boolean).join(" • ")}</p> : null}</div>
           <div className={`flex h-12 w-12 items-center justify-center rounded-[18px] ${routeInfo?.approximate ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{routeInfo?.approximate ? <AlertTriangle size={20} /> : <Banknote size={20} />}</div>
         </div>
-        {!rideCreated && !confirmedRideData && selectedBreakdown ? (
-          <div className="mt-3 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="mini-label">Fare breakdown</p>
-                <h3 className="mt-1 text-base font-black text-slate-950">How your estimate is calculated</h3>
-              </div>
-              <span className="rounded-full bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-wide text-slate-500 shadow-sm">{selectedVehicle}</span>
-            </div>
-            <div className="mt-3 space-y-2 text-xs font-bold">
-              <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Base fare</span><span className="text-slate-950">{formatMoney(selectedBreakdown.base || 0, currency)}</span></div>
-              <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Distance • {selectedBreakdown.kilometres || 0} km</span><span className="text-slate-950">{formatMoney(selectedBreakdown.distanceCharge || 0, currency)}</span></div>
-              <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Time • {selectedBreakdown.minutes || 0} min</span><span className="text-slate-950">{formatMoney(selectedBreakdown.timeCharge || 0, currency)}</span></div>
-              {minimumAdjustment > 0 ? <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Minimum fare adjustment</span><span className="text-slate-950">{formatMoney(minimumAdjustment, currency)}</span></div> : null}
-              <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-2"><span className="font-black text-slate-950">Estimated total</span><span className="text-base font-black text-slate-950">{formatMoney(selectedBreakdown.total || baseFare, currency)}</span></div>
-            </div>
-            {selectedPricing ? (
-              <p className="mt-3 rounded-2xl bg-white px-3 py-2 text-[10px] font-bold leading-4 text-slate-500">
-                Rate: {formatMoney(selectedPricing.base || 0, currency)} base + {formatMoney(selectedPricing.perKm || 0, currency)}/km + {formatMoney(selectedPricing.perMinute || 0, currency)}/min
-                {Number(selectedPricing.minimum || 0) > 0 ? " • minimum " + formatMoney(selectedPricing.minimum, currency) : ""}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-
         {routeInfo?.approximate && !rideCreated && !confirmedRideData ? (
           <div className="mt-3 rounded-[22px] border border-amber-200 bg-amber-50 p-3.5 text-[11px] font-bold leading-4 text-amber-900">
             QuickRide will request a fresh live route when you confirm. The ride will only be created if live route pricing is available.
