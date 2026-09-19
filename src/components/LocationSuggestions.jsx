@@ -2,6 +2,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { Building2, CheckCircle2, GraduationCap, MapPin, Plane, Search, ShoppingBag } from "lucide-react";
 
+const NIGERIA_SERVICE_BOUNDS = { west: 2.4, south: 4.2, east: 14.7, north: 13.9 };
+
+const isNigeriaSuggestion = (suggestion = "") =>
+  /(^|,|\s)nigeria(?:\s|,|$)/i.test(String(suggestion || "").trim());
+
+const isWithinNigeriaServiceBounds = (lat, lng) =>
+  Number.isFinite(Number(lat)) &&
+  Number.isFinite(Number(lng)) &&
+  Number(lng) >= NIGERIA_SERVICE_BOUNDS.west &&
+  Number(lng) <= NIGERIA_SERVICE_BOUNDS.east &&
+  Number(lat) >= NIGERIA_SERVICE_BOUNDS.south &&
+  Number(lat) <= NIGERIA_SERVICE_BOUNDS.north;
+
 const getSuggestionIcon = (suggestion = "") => {
   const value = suggestion.toLowerCase();
   if (value.includes("university") || value.includes("college")) return GraduationCap;
@@ -90,7 +103,11 @@ function LocationSuggestions({
           { headers: { token } }
         );
         if (requestId !== requestRef.current) return;
-        setSuggestions(Array.isArray(response.data) ? response.data.slice(0, 8) : []);
+        const nigeriaOnly = Array.isArray(response.data)
+          ? response.data.filter(isNigeriaSuggestion).slice(0, 8)
+          : [];
+        setSuggestions(nigeriaOnly);
+        setSearchError(nigeriaOnly.length ? "" : "No matching location found in Nigeria.");
         setOpen(true);
         setActiveIndex(-1);
       } catch (_) {
@@ -119,6 +136,11 @@ function LocationSuggestions({
       const lat = Number(response.data?.ltd);
       const lng = Number(response.data?.lng);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error("Coordinates unavailable");
+      if (!isNigeriaSuggestion(suggestion) || !isWithinNigeriaServiceBounds(lat, lng)) {
+        setSearchError("QuickRide locations are currently limited to Nigeria.");
+        setOpen(true);
+        return;
+      }
       onValueChange?.(suggestion);
       onSelectSuggestion?.({ address: suggestion, lat, lng, provider: response.data?.provider || "suggestion" }, inputId);
       setSuggestions([]);
