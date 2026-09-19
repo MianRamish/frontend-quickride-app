@@ -800,8 +800,9 @@ function UserHomeScreen() {
       </div>
 
       {showFindTripPanel && (
-        <div className="floating-sheet floating-sheet-nav z-30 flex min-h-[57dvh] flex-col gap-3 sheet-scroll sheet-scroll-nav sheet-enter">
-          <div className="sheet-handle" />
+        <div className="floating-sheet floating-sheet-nav sheet-frame z-30 min-h-[57dvh] sheet-enter">
+          <div className="sheet-handle mt-4 mb-1" />
+          <div className="sheet-body flex flex-col gap-3">
 
           <div className="flow-steps">
             <div className="flow-step flow-step-active"><span className="mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-950 text-[9px] text-white">1</span> Route</div>
@@ -1023,13 +1024,16 @@ function UserHomeScreen() {
             </div>
           ) : null}
 
-          <Button
-            title={pickupConfirmed && destinationConfirmed ? "See ride options" : "Select both locations"}
-            loading={loading}
-            loadingMessage="Calculating route"
-            disabled={!pickupConfirmed || !destinationConfirmed || (rideMode === "scheduled" && !scheduledFor)}
-            fun={() => getDistanceAndFare(pickupLocation, destinationLocation)}
-          />
+          </div>
+          <div className="sheet-fixed-footer">
+            <Button
+              title={pickupConfirmed && destinationConfirmed ? "See ride options" : "Select both locations"}
+              loading={loading}
+              loadingMessage="Calculating route"
+              disabled={!pickupConfirmed || !destinationConfirmed || (rideMode === "scheduled" && !scheduledFor)}
+              fun={() => getDistanceAndFare(pickupLocation, destinationLocation)}
+            />
+          </div>
         </div>
       )}
 
@@ -1038,7 +1042,7 @@ function UserHomeScreen() {
       <RideDetails pickupLocation={pickupLocation} destinationLocation={destinationLocation} selectedVehicle={selectedVehicle} fare={fare} fareBreakdown={fareBreakdown} farePricing={farePricing} currency={currency} routeInfo={routeInfo} showPanel={showRideDetailsPanel} setShowPanel={setShowRideDetailsPanel} showPreviousPanel={setShowSelectVehiclePanel} createRide={createRide} cancelRide={cancelRide} loading={loading} rideCreated={rideCreated} confirmedRideData={confirmedRideData} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} paymentMethods={paymentMethods} promoCode={promoCode} setPromoCode={setPromoCode} />
 
       {(confirmedRideData || rideCreated) && (
-        <div className="fixed fab-stack-nav left-4 right-4 z-40 mx-auto grid max-w-xl grid-cols-2 gap-3 pointer-events-auto">
+        <div className="fixed fab-stack-nav left-4 right-4 z-[35] mx-auto grid max-w-xl grid-cols-2 gap-3 pointer-events-auto">
           <button type="button" className="rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white shadow-xl" onClick={() => setShowEmergencyModal(true)}>Emergency / SOS</button>
           <button type="button" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-950 shadow-xl" onClick={() => setShowComplaintModal(true)}>File complaint</button>
         </div>
