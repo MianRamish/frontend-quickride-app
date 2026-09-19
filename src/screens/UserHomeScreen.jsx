@@ -856,7 +856,7 @@ function UserHomeScreen() {
                 value={pickupLocation}
                 token={token}
                 confirmed={pickupConfirmed}
-                placeholder="Area, landmark or address"
+                placeholder="House no., street, landmark or area"
                 userLocation={position?.coords ? { lat: position.coords.latitude, lng: position.coords.longitude } : null}
                 onValueChange={(value) => {
                   setSelectedInput("pickup");
@@ -903,7 +903,7 @@ function UserHomeScreen() {
                 value={destinationLocation}
                 token={token}
                 confirmed={destinationConfirmed}
-                placeholder="Where are you going?"
+                placeholder="House no., street or destination"
                 userLocation={position?.coords ? { lat: position.coords.latitude, lng: position.coords.longitude } : null}
                 onValueChange={(value) => {
                   setSelectedInput("destination");
