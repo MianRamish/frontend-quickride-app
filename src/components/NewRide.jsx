@@ -60,7 +60,7 @@ function NewRide({ rideData, otp, setOtp, showBtn, showPanel, setShowPanel, show
 
   return (
     <>
-      <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet z-40 sheet-scroll`}>
+      <div className={`${showPanel ? "translate-y-0" : "translate-y-full"} floating-sheet floating-sheet-nav z-40 sheet-scroll sheet-scroll-nav`}>
         <div className="sheet-handle mb-3" />
         <RideStatusTimeline status={status} />
 
