@@ -1272,7 +1272,7 @@ const requestWithdrawal = async (event) => {
           </button></div>
         </div>
         <div className="relative h-[calc(100%_-_62px)]">
-          <LiveMap height="100%" center={mapCenter} markers={captainMarkers} />
+          <LiveMap height="100%" center={mapCenter} markers={captainMarkers} className="driver-home-map" />
           <div className="absolute bottom-3 left-3 right-3 z-[500] flex items-center gap-2 rounded-[22px] border border-white/80 bg-white/95 p-2.5 shadow-xl backdrop-blur-xl">
             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${readyForRequests ? "bg-emerald-100 text-emerald-700" : locationFresh ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
               {readyForRequests ? <Navigation size={18} /> : locationFresh ? <MapPin size={18} /> : <LocateFixed size={18} />}
